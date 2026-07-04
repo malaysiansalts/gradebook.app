@@ -77,6 +77,15 @@ function isValidEmail(email) {
   return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// The account matching ADMIN_EMAIL (set in your hosting provider's
+// environment variables) is flagged as the developer/owner account. This is
+// computed on the fly rather than stored, so changing the env var instantly
+// updates who's marked as the developer without touching stored data.
+function isAdminEmail(email) {
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  return !!adminEmail && email === adminEmail;
+}
+
 // ---------- auth routes ----------
 app.post("/api/register", (req, res) => {
   const { email, password } = req.body || {};
@@ -102,7 +111,7 @@ app.post("/api/register", (req, res) => {
     sameSite: "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
-  res.json({ email: normalizedEmail });
+  res.json({ email: normalizedEmail, isAdmin: isAdminEmail(normalizedEmail) });
 });
 
 app.post("/api/login", (req, res) => {
@@ -118,7 +127,7 @@ app.post("/api/login", (req, res) => {
     sameSite: "lax",
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
-  res.json({ email: user.email });
+  res.json({ email: user.email, isAdmin: isAdminEmail(user.email) });
 });
 
 app.post("/api/logout", (req, res) => {
@@ -129,7 +138,7 @@ app.post("/api/logout", (req, res) => {
 app.get("/api/me", requireAuth, (req, res) => {
   const user = db.users.find((u) => u.id === req.userId);
   if (!user) return res.status(401).json({ error: "Not logged in." });
-  res.json({ email: user.email });
+  res.json({ email: user.email, isAdmin: isAdminEmail(user.email) });
 });
 
 // ---------- course data routes ----------
