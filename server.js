@@ -9,6 +9,13 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Make sure the data directory exists (it won't be present after a fresh
+// git clone/deploy, since empty folders aren't tracked by git).
+const DATA_DIR = path.join(__dirname, "data");
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
 // JWT secret: use env var in production. A random one is generated on first
 // boot and persisted to disk so restarts don't invalidate existing sessions.
 const SECRET_PATH = path.join(__dirname, "data", "jwt-secret.txt");
