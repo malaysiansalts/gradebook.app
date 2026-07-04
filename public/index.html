@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F3EC;
+    --paper-dim: #EFE9DA;
+    --line: #D8D1BF;
+    --ink: #2E3B4E;
+    --ink-dark: #1E2733;
+    --brick: #8B3A3A;
+    --tan: #D8B08C;
+    --muted: #8A806B;
+    --slate-light: #B9C2CF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+  }
+  .serif { font-family: 'Fraunces', serif; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(246,243,236,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-badge {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--brick);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-badge svg { width: 18px; height: 18px; color: var(--paper); }
+  h1.title { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; flex: 1; }
+  .account-area { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+  .logout-btn {
+    background: none; border: 1px solid var(--line); border-radius: 8px;
+    padding: 6px 12px; font-family: inherit; font-size: 13px; color: var(--ink);
+    cursor: pointer;
+  }
+  .logout-btn:hover { background: var(--paper-dim); }
+
+  .layout {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .sidebar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .course-row { display: flex; align-items: center; gap: 6px; }
+  .course-btn {
+    flex: 1; min-width: 0; text-align: left; padding: 10px 12px; border-radius: 8px;
+    border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    color: var(--ink); transition: background-color .15s ease;
+  }
+  .course-btn:hover { background: var(--paper-dim); }
+  .course-btn.active { background: var(--ink); color: var(--paper); }
+  .course-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .course-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); flex-shrink: 0; }
+  .course-btn.active .course-pct { color: var(--tan); }
+  .icon-btn {
+    background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color .15s ease;
+  }
+  .icon-btn:hover { color: var(--brick); }
+  .icon-btn svg { width: 15px; height: 15px; }
+  .add-course-btn {
+    margin-top: 8px; width: 100%; display: flex; align-items: center; gap: 8px;
+    background: none; border: none; cursor: pointer; color: var(--brick); font-family: inherit; font-size: 14px;
+    padding: 10px 12px; border-radius: 8px; transition: background-color .15s ease;
+  }
+  .add-course-btn:hover { background: var(--paper-dim); }
+
+  .course-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  .course-title-input {
+    font-family: 'Fraunces', serif; font-size: 30px; font-weight: 600; background: transparent;
+    border: none; border-bottom: 2px solid transparent; outline: none; flex: 1; min-width: 0;
+    padding: 2px 0; color: var(--ink);
+  }
+  .course-title-input:focus { border-bottom-color: var(--brick); }
+
+  .banner {
+    border-radius: 14px; background: var(--ink-dark); color: var(--paper); padding: 20px 24px;
+    margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .banner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); margin-bottom: 6px; }
+  .banner-grade { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; display: flex; align-items: baseline; gap: 12px; }
+  .banner-letter { color: var(--tan); font-size: 24px; }
+  .banner-warning { font-size: 12px; color: var(--tan); text-align: right; max-width: 160px; }
+
+  .category { border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.55); overflow: hidden; margin-bottom: 14px; }
+  .category-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--paper-dim); }
+  .chevron { background: none; border: none; cursor: pointer; color: var(--muted); display:flex; }
+  .chevron svg { width: 16px; height: 16px; }
+  .category-name-input { font-weight: 500; background: transparent; border: none; outline: none; flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--ink); }
+  .weight-input-wrap { display: flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); flex-shrink: 0; }
+  .weight-input { width: 48px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--line); outline: none; font-family: inherit; font-size: 13px; color: var(--ink); }
+  .weight-input:focus { border-bottom-color: var(--brick); }
+  .cat-pct { font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 60px; text-align: right; flex-shrink: 0; }
+
+  .category-body { padding: 12px 16px; }
+  .empty-note { font-size: 13px; color: var(--muted); font-style: italic; margin: 0 0 8px; }
+  .item-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .item-label-input { flex: 1; min-width: 0; font-size: 13px; background: transparent; border: none; border-bottom: 1px solid transparent; outline: none; font-family: inherit; color: var(--ink); }
+  .item-label-input:focus { border-bottom-color: var(--brick); }
+  .item-num-input { width: 72px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; outline: none; color: var(--ink); }
+  .item-num-input:focus { border-color: var(--brick); }
+  .slash { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
+
+  .add-item-btn, .add-category-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--brick); padding: 4px 0; margin-top: 4px; }
+  .add-category-btn { border: 1px solid var(--line); border-radius: 10px; color: var(--ink); padding: 10px 16px; font-size: 14px; background: rgba(255,255,255,0.4); }
+  .add-category-btn:hover { background: var(--paper-dim); }
+  .add-item-btn svg, .add-category-btn svg { width: 14px; height: 14px; }
+
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { opacity: 0.35; }
+
+  /* ---- Auth screen ---- */
+  .auth-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .auth-card {
+    width: 100%; max-width: 380px; background: rgba(255,255,255,0.6); border: 1px solid var(--line);
+    border-radius: 16px; padding: 32px;
+  }
+  .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .auth-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .auth-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
+  .field-label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .field-input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: var(--paper); outline: none; margin-bottom: 14px;
+  }
+  .field-input:focus { border-color: var(--brick); }
+  .auth-submit {
+    width: 100%; padding: 11px; border: none; border-radius: 8px; background: var(--brick);
+    color: var(--paper); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .auth-submit:hover { opacity: 0.92; }
+  .auth-switch { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
+  .auth-switch button { background: none; border: none; color: var(--brick); cursor: pointer; font-family: inherit; font-size: 13px; padding: 0; }
+  .auth-error { color: var(--brick); font-size: 13px; margin: -6px 0 14px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ===== Auth screen ===== -->
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2.5 3 6 3s6-1 6-3v-5"/></svg>
+      </div>
+      <span class="serif" style="font-size:20px;font-weight:600;">Gradebook</span>
+    </div>
+
+    <h2 class="auth-title serif" id="auth-title">Welcome back</h2>
+    <p class="auth-sub" id="auth-sub">Log in to see your grades.</p>
+    <p class="auth-error hidden" id="auth-error"></p>
+
+    <form id="auth-form">
+      <label class="field-label" for="auth-email">Email</label>
+      <input class="field-input" id="auth-email" type="email" autocomplete="email" required>
+      <label class="field-label" for="auth-password">Password</label>
+      <input class="field-input" id="auth-password" type="password" autocomplete="current-password" required>
+      <button class="auth-submit" type="submit" id="auth-submit-btn">Log in</button>
+    </form>
+
+    <div class="auth-switch">
+      <span id="auth-switch-text">Don't have an account?</span>
+      <button id="auth-switch-btn">Sign up</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== App screen ===== -->
+<div id="app-screen" class="hidden">
+  <header>
+    <div class="header-inner">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2.5 3 6 3s6-1 6-3v-5"/></svg>
+      </div>
+      <h1 class="title serif">Gradebook</h1>
+      <div class="account-area">
+        <span id="account-email"></span>
+        <button class="logout-btn" id="logout-btn">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="sidebar-label">Courses</div>
+      <ul class="course-list" id="course-list"></ul>
+      <button class="add-course-btn" id="add-course-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 5v14M5 12h14"/></svg>
+        Add course
+      </button>
+    </aside>
+    <main id="main-content"></main>
+  </div>
+</div>
+
+<script>
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+// ---------- API helpers ----------
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    credentials: "same-origin",
+  });
+  let body = null;
+  try { body = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error((body && body.error) || "Something went wrong.");
+  return body;
+}
+
+// ---------- state ----------
+let state = { courses: [], activeId: null };
+let authMode = "login"; // or "register"
+
+// ---------- auth screen wiring ----------
+const authScreen = document.getElementById("auth-screen");
+const appScreen = document.getElementById("app-screen");
+const authForm = document.getElementById("auth-form");
+const authError = document.getElementById("auth-error");
+const authTitle = document.getElementById("auth-title");
+const authSub = document.getElementById("auth-sub");
+const authSubmitBtn = document.getElementById("auth-submit-btn");
+const authSwitchText = document.getElementById("auth-switch-text");
+const authSwitchBtn = document.getElementById("auth-switch-btn");
+const passwordInput = document.getElementById("auth-password");
+
+function setAuthMode(mode) {
+  authMode = mode;
+  authError.classList.add("hidden");
+  if (mode === "login") {
+    authTitle.textContent = "Welcome back";
+    authSub.textContent = "Log in to see your grades.";
+    authSubmitBtn.textContent = "Log in";
+    authSwitchText.textContent = "Don't have an account?";
+    authSwitchBtn.textContent = "Sign up";
+    passwordInput.autocomplete = "current-password";
+  } else {
+    authTitle.textContent = "Create your account";
+    authSub.textContent = "Track grades across every device.";
+    authSubmitBtn.textContent = "Sign up";
+    authSwitchText.textContent = "Already have an account?";
+    authSwitchBtn.textContent = "Log in";
+    passwordInput.autocomplete = "new-password";
+  }
+}
+authSwitchBtn.addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
+
+authForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  authError.classList.add("hidden");
+  const email = document.getElementById("auth-email").value;
+  const password = document.getElementById("auth-password").value;
+  authSubmitBtn.disabled = true;
+  try {
+    const endpoint = authMode === "login" ? "/api/login" : "/api/register";
+    const data = await api(endpoint, { method: "POST", body: JSON.stringify({ email, password }) });
+    await enterApp(data.email);
+  } catch (err) {
+    authError.textContent = err.message;
+    authError.classList.remove("hidden");
+  } finally {
+    authSubmitBtn.disabled = false;
+  }
+});
+
+document.getElementById("logout-btn").addEventListener("click", async () => {
+  await api("/api/logout", { method: "POST" });
+  appScreen.classList.add("hidden");
+  authScreen.classList.remove("hidden");
+  authForm.reset();
+  setAuthMode("login");
+});
+
+async function enterApp(email) {
+  document.getElementById("account-email").textContent = email;
+  const data = await api("/api/courses");
+  state.courses = data.courses && data.courses.length ? data.courses : [defaultCourse()];
+  state.activeId = state.courses[0].id;
+  authScreen.classList.add("hidden");
+  appScreen.classList.remove("hidden");
+  render();
+}
+
+// try to resume an existing session on load
+(async () => {
+  try {
+    const me = await api("/api/me");
+    await enterApp(me.email);
+  } catch (e) {
+    // not logged in — show auth screen (default)
+  }
+})();
+
+// ---------- grade math ----------
+function defaultCourse() {
+  return {
+    id: uid(),
+    name: "Untitled Course",
+    categories: [
+      { id: uid(), name: "Homework", weight: 30, open: true, items: [] },
+      { id: uid(), name: "Exams", weight: 70, open: true, items: [] },
+    ],
+  };
+}
+function letterGrade(pct) {
+  if (pct === null) return "—";
+  if (pct >= 93) return "A"; if (pct >= 90) return "A-";
+  if (pct >= 87) return "B+"; if (pct >= 83) return "B"; if (pct >= 80) return "B-";
+  if (pct >= 77) return "C+"; if (pct >= 73) return "C"; if (pct >= 70) return "C-";
+  if (pct >= 67) return "D+"; if (pct >= 63) return "D"; if (pct >= 60) return "D-";
+  return "F";
+}
+function computeCourse(course) {
+  let weightedSum = 0, weightUsed = 0;
+  const catResults = course.categories.map((cat) => {
+    const graded = cat.items.filter(i => i.earned !== "" && i.possible !== "" && Number(i.possible) > 0);
+    const earned = graded.reduce((s, i) => s + Number(i.earned), 0);
+    const possible = graded.reduce((s, i) => s + Number(i.possible), 0);
+    const pct = possible > 0 ? (earned / possible) * 100 : null;
+    if (pct !== null) { weightedSum += pct * Number(cat.weight || 0); weightUsed += Number(cat.weight || 0); }
+    return { id: cat.id, pct };
+  });
+  const overall = weightUsed > 0 ? weightedSum / weightUsed : null;
+  const totalWeight = course.categories.reduce((s, c) => s + Number(c.weight || 0), 0);
+  return { catResults, overall, totalWeight };
+}
+
+// ---------- persistence (debounced save to server) ----------
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try { await api("/api/courses", { method: "PUT", body: JSON.stringify({ courses: state.courses }) }); }
+    catch (e) { console.error("save failed", e); }
+  }, 400);
+}
+
+// ---------- mutation helpers ----------
+function getActive() { return state.courses.find(c => c.id === state.activeId) || state.courses[0]; }
+function updateActive(fn) {
+  const idx = state.courses.findIndex(c => c.id === state.activeId);
+  state.courses[idx] = fn(structuredClone(state.courses[idx]));
+  scheduleSave(); render();
+}
+function setActive(id) { state.activeId = id; render(); }
+function addCourse() {
+  const c = defaultCourse();
+  state.courses.push(c); state.activeId = c.id;
+  scheduleSave(); render();
+}
+function removeCourse(id) {
+  state.courses = state.courses.filter(c => c.id !== id);
+  if (state.courses.length === 0) {
+    const fresh = defaultCourse();
+    state.courses = [fresh]; state.activeId = fresh.id;
+  } else if (id === state.activeId) {
+    state.activeId = state.courses[0].id;
+  }
+  scheduleSave(); render();
+}
+
+// ---------- rendering ----------
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  Object.entries(props).forEach(([k, v]) => {
+    if (k === "class") node.className = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null) node.setAttribute(k, v);
+  });
+  (Array.isArray(children) ? children : [children]).forEach(c => {
+    if (c === null || c === undefined) return;
+    node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return node;
+}
+const trashSVG = () => { const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`; return d.firstChild; };
+const chevronSVG = (open) => { const d = document.createElement('div'); d.innerHTML = open ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>`; return d.firstChild; };
+const plusSVG = () => { const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`; return d.firstChild; };
+
+function renderSidebar() {
+  const list = document.getElementById("course-list");
+  list.innerHTML = "";
+  state.courses.forEach(c => {
+    const r = computeCourse(c);
+    const btn = el("button", { class: "course-btn" + (c.id === state.activeId ? " active" : ""), onclick: () => setActive(c.id) }, [
+      el("span", { class: "course-name" }, c.name),
+      el("span", { class: "course-pct mono" }, r.overall !== null ? `${r.overall.toFixed(1)}%` : "—"),
+    ]);
+    list.appendChild(el("li", { class: "course-row" }, [btn]));
+  });
+}
+
+function renderMain() {
+  const main = document.getElementById("main-content");
+  main.innerHTML = "";
+  const course = getActive();
+  const result = computeCourse(course);
+  const weightOff = Math.abs(result.totalWeight - 100) > 0.001;
+
+  const nameInput = el("input", { class: "course-title-input serif", value: course.name, "aria-label": "Course name" });
+  nameInput.value = course.name;
+  nameInput.addEventListener("input", (e) => {
+    updateActive(c => { c.name = e.target.value; return c; });
+    requestAnimationFrame(() => {
+      const el2 = document.querySelector(".course-title-input");
+      if (el2) { el2.focus(); el2.setSelectionRange(el2.value.length, el2.value.length); }
+    });
+  });
+
+  const deleteCourseBtn = el("button", { class: "icon-btn", "aria-label": "Delete course", onclick: () => removeCourse(course.id) }, trashSVG());
+  main.appendChild(el("div", { class: "course-header" }, [nameInput, deleteCourseBtn]));
+
+  const bannerLeft = el("div", {}, [
+    el("div", { class: "banner-label" }, "Current grade"),
+    el("div", { class: "banner-grade serif" }, [
+      result.overall !== null ? `${result.overall.toFixed(2)}%` : "No grades yet",
+      result.overall !== null ? el("span", { class: "banner-letter" }, letterGrade(result.overall)) : null,
+    ]),
+  ]);
+  const bannerChildren = [bannerLeft];
+  if (weightOff) bannerChildren.push(el("div", { class: "banner-warning" }, `Category weights total ${result.totalWeight}%, not 100%.`));
+  main.appendChild(el("div", { class: "banner" }, bannerChildren));
+
+  course.categories.forEach(cat => {
+    const cr = result.catResults.find(r => r.id === cat.id);
+    const catNameInput = el("input", { class: "category-name-input", value: cat.name });
+    catNameInput.value = cat.name;
+    catNameInput.dataset.catid = cat.id;
+    catNameInput.addEventListener("input", (e) => {
+      updateActive(c => { c.categories.find(x => x.id === cat.id).name = e.target.value; return c; });
+      requestAnimationFrame(() => {
+        document.querySelectorAll(".category-name-input").forEach(inp => { if (inp.dataset.catid === cat.id) inp.focus(); });
+      });
+    });
+
+    const weightInput = el("input", { type: "number", class: "weight-input", value: cat.weight });
+    weightInput.addEventListener("input", (e) => {
+      updateActive(c => { c.categories.find(x => x.id === cat.id).weight = e.target.value; return c; });
+    });
+
+    const head = el("div", { class: "category-head" }, [
+      el("button", { class: "chevron", "aria-label": cat.open ? "Collapse" : "Expand", onclick: () => updateActive(c => { c.categories.find(x => x.id === cat.id).open = !cat.open; return c; }) }, chevronSVG(cat.open)),
+      catNameInput,
+      el("div", { class: "weight-input-wrap" }, [weightInput, el("span", {}, "% weight")]),
+      el("div", { class: "cat-pct mono" }, cr && cr.pct !== null ? `${cr.pct.toFixed(1)}%` : "—"),
+      el("button", { class: "icon-btn", "aria-label": "Delete category", onclick: () => updateActive(c => { c.categories = c.categories.filter(x => x.id !== cat.id); return c; }) }, trashSVG()),
+    ]);
+
+    const categoryEl = el("div", { class: "category" }, [head]);
+
+    if (cat.open) {
+      const body = el("div", { class: "category-body" });
+      if (cat.items.length === 0) body.appendChild(el("p", { class: "empty-note" }, "No grades entered yet."));
+      cat.items.forEach(item => {
+        const labelInput = el("input", { class: "item-label-input", value: item.label });
+        labelInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).label = e.target.value; return c; }));
+        const earnedInput = el("input", { type: "number", class: "item-num-input", placeholder: "earned", value: item.earned });
+        earnedInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).earned = e.target.value; return c; }));
+        const possibleInput = el("input", { type: "number", class: "item-num-input", placeholder: "of", value: item.possible });
+        possibleInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).possible = e.target.value; return c; }));
+        const delBtn = el("button", { class: "icon-btn", "aria-label": "Delete item", onclick: () => updateActive(c => { const t = c.categories.find(x => x.id === cat.id); t.items = t.items.filter(i => i.id !== item.id); return c; }) }, trashSVG());
+        body.appendChild(el("div", { class: "item-row" }, [labelInput, earnedInput, el("span", { class: "slash" }, "/"), possibleInput, delBtn]));
+      });
+      const addItemBtn = el("button", { class: "add-item-btn" }, [plusSVG(), " Add grade"]);
+      addItemBtn.addEventListener("click", () => updateActive(c => {
+        const t = c.categories.find(x => x.id === cat.id);
+        t.items.push({ id: uid(), label: `Item ${t.items.length + 1}`, earned: "", possible: "" });
+        return c;
+      }));
+      body.appendChild(addItemBtn);
+      categoryEl.appendChild(body);
+    }
+    main.appendChild(categoryEl);
+  });
+
+  const addCategoryBtn = el("button", { class: "add-category-btn" }, [plusSVG(), " Add category"]);
+  addCategoryBtn.addEventListener("click", () => updateActive(c => { c.categories.push({ id: uid(), name: "New Category", weight: 0, open: true, items: [] }); return c; }));
+  main.appendChild(addCategoryBtn);
+}
+
+function render() { renderSidebar(); renderMain(); }
+document.getElementById("add-course-btn").addEventListener("click", addCourse);
+</script>
+</body>
+</html>
