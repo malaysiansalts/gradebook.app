@@ -3,62 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Academic Gradebook Calculator</title>
+  <title>Premium Gradebook Portal</title>
   <style>
     :root {
-      --bg-cream: #faf8f5;
-      --burgundy: #732626;
-      --burgundy-hover: #5c1e1e;
-      --text-dark: #2c2523;
+      --bg-slate: #f8fafc;
+      --brand-primary: #0f172a;
+      --brand-accent: #3b82f6;
+      --brand-accent-hover: #2563eb;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
       --card-bg: #ffffff;
-      --border-color: #eae1d8;
+      --border-soft: #e2e8f0;
+      --radius-lg: 16px;
+      --radius-md: 10px;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-cream);
-      color: var(--text-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-slate);
+      color: var(--text-main);
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
 
-    .auth-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .auth-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; max-width: 420px; width: 100%; box-shadow: 0 4px 20px rgba(115, 38, 38, 0.04); }
-    .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    /* Base Layout Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-    h1, h2, h3 { color: var(--burgundy); margin-top: 0; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
-    
+    /* Auth Styling */
+    .auth-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent);
+    }
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .auth-header { text-align: center; margin-bottom: 24px; }
+    .auth-header h2 { font-size: 28px; font-weight: 700; color: var(--brand-primary); margin: 0 0 6px 0; }
+    .auth-header p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+    /* Social Providers Box */
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.2s ease-in-out;
+    }
+    .social-btn:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px); }
+    .social-btn:active { transform: translateY(0); }
+    .social-btn img { width: 18px; height: 18px; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 20px 0;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
+    .divider:not(:empty)::before { margin-right: .75em; }
+    .divider:not(:empty)::after { margin-left: .75em; }
+
+    /* Dashboard Layout */
+    .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 24px; animation: fadeInUp 0.5s ease-out; }
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .top-nav h1 { font-size: 32px; font-weight: 800; color: var(--brand-primary); margin: 0; }
+
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: var(--text-main); letter-spacing: -0.01em; }
     input, select {
       width: 100%;
-      padding: 10px 14px;
-      margin-bottom: 15px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
       box-sizing: border-box;
-      background-color: #fdfcfb;
+      background-color: #ffffff;
       font-size: 14px;
+      color: var(--text-main);
+      transition: all 0.15s ease-in-out;
     }
-    input:focus, select:focus { outline: none; border-color: var(--burgundy); }
+    input:focus, select:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
 
-    button { background: var(--burgundy); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-    button:hover { background: var(--burgundy-hover); }
-    .secondary-btn { background: none; color: #666; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; }
-    .danger-btn { background: #b03a3a; color: white; }
-    .danger-btn:hover { background: #8a2e2e; }
+    button {
+      background: var(--brand-primary);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08); }
+    button:active { transform: translateY(0); }
+    
+    .accent-btn { background: var(--brand-accent); }
+    .accent-btn:hover { background: var(--brand-accent-hover); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15); }
+    .secondary-btn { background: none; color: var(--text-muted); border: 1px solid var(--border-soft); width: 100%; margin-top: 10px; }
+    .secondary-btn:hover { background: #f8fafc; color: var(--text-main); }
+    .danger-btn { background: #ef4444; color: #ffffff; }
+    .danger-btn:hover { background: #dc2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15); }
 
-    .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-    @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
+    .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .scale-matrix input { padding: 6px; text-align: center; margin-bottom: 6px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.02); }
+    .card h3 { font-size: 18px; font-weight: 700; color: var(--brand-primary); margin-bottom: 6px; }
 
-    .row-item-3col { display: grid; grid-template-columns: 3fr 2fr 40px; gap: 12px; align-items: center; margin-bottom: 12px; }
-    .row-item-3col input, .row-item-3col select { margin-bottom: 0; padding: 10px; }
+    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .scale-matrix input { padding: 8px; text-align: center; margin-bottom: 0; }
 
-    .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; padding: 0; }
-    .remove-btn:hover { color: var(--burgundy); }
+    .row-item-3col { display: grid; grid-template-columns: 3fr 2fr 40px; gap: 16px; align-items: center; margin-bottom: 12px; animation: fadeInUp 0.25s ease-out forwards; }
+    .row-item-3col input, .row-item-3col select { margin-bottom: 0; }
+
+    .remove-btn { background: none; color: var(--text-muted); font-size: 18px; border: none; cursor: pointer; text-align: center; padding: 0; }
+    .remove-btn:hover { color: #ef4444; transform: scale(1.1); }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -66,46 +153,61 @@
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
-      <h2 id="auth-title">Create Account</h2>
-      <div id="auth-error" style="color: var(--burgundy); font-weight: bold; margin-bottom: 15px;" class="hidden">Authentication error. Try again.</div>
+      <div class="auth-header">
+        <h2 id="auth-title">Create Account</h2>
+        <p id="auth-subtitle">Secure Academic Sync Portal</p>
+      </div>
+
+      <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px;" class="hidden">Authentication processing error. Check parameters.</div>
       
+      <button class="social-btn" onclick="triggerMockOAuth('Google')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+        Continue with Google
+      </button>
+      <button class="social-btn" onclick="triggerMockOAuth('Apple')">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple Logo" style="filter: brightness(0.1);">
+        Continue with Apple
+      </button>
+
+      <div class="divider">or use email</div>
+
       <form onsubmit="event.preventDefault(); executeAuth();">
-        <label>Email</label>
-        <input type="email" id="auth-email" placeholder="student@domain.com" required>
-        <label>Password</label>
+        <label>Institutional Email Address</label>
+        <input type="email" id="auth-email" placeholder="name@university.edu" required>
+        <label>Access Key Password</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%;">Submit</button>
+        <button type="submit" class="accent-btn" style="width:100%; margin-top: 8px; padding: 13px;">Authenticate Identity</button>
       </form>
       
-      <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
+      <button class="secondary-btn" onclick="toggleAuth()">Toggle Portal Interface</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <div class="top-nav">
       <div>
-        <h1 style="margin: 0;">Weighted Gradebook Calculator</h1>
-        <p id="current-user-tag" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
+        <h1>Academic Workspace</h1>
+        <p id="current-user-tag" style="margin: 6px 0 0; color: var(--text-muted); font-size: 14px; font-weight: 500;"></p>
       </div>
-      <button onclick="logOutUser()" style="background: #555;">Log Out</button>
+      <button onclick="logOutUser()" style="background: #64748b; padding: 10px 20px;">Disconnect Session</button>
     </div>
 
-    <div class="card" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 180px;">
-        <label>Select Active Subject</label>
-        <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0;"></select>
+    <div class="card" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+      <div style="flex: 120; min-width: 180px;">
+        <label>Active Matrix Subject Course</label>
+        <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0; font-weight: 600; border-color: #cbd5e1;"></select>
       </div>
-      <div style="flex: 1; min-width: 180px;">
-        <label>Rename Current Subject</label>
+      <div style="flex: 100; min-width: 180px;">
+        <label>Rename Core Registry</label>
         <div style="display: flex; gap: 8px;">
-          <input type="text" id="rename-class-input" placeholder="New subject name" style="margin-bottom: 0;">
-          <button onclick="renameCurrentSubject()" style="white-space: nowrap; background: #6c757d;">Rename</button>
+          <input type="text" id="rename-class-input" placeholder="Update string" style="margin-bottom: 0;">
+          <button onclick="renameCurrentSubject()" style="white-space: nowrap; background: #64748b;">Rename</button>
         </div>
       </div>
       <div style="display: flex; gap: 8px; align-items: flex-end;">
-        <button onclick="deleteCurrentClassChannel()" class="danger-btn" style="white-space: nowrap; margin-right: 15px;">Delete Class</button>
-        <input type="text" id="new-class-input" placeholder="e.g., Physics" style="margin-bottom: 0; width: 140px;">
-        <button onclick="createNewClassChannel()" style="white-space: nowrap;">+ Add Class</button>
+        <button onclick="deleteCurrentClassChannel()" class="danger-btn" style="white-space: nowrap; margin-right: 12px;">Delete Course</button>
+        <input type="text" id="new-class-input" placeholder="e.g., Chemistry 101" style="margin-bottom: 0; width: 160px;">
+        <button onclick="createNewClassChannel()" class="accent-btn" style="white-space: nowrap;">+ Initialize Class</button>
       </div>
     </div>
 
@@ -113,67 +215,70 @@
       
       <div>
         <div class="card">
-          <h3>1. Class Weights Setup</h3>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Define grading pools and their values.</p>
-          <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-            <div>Category Name</div>
-            <div>Category Weight %</div>
+          <h3>1. Class Allocation Distribution Setup</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: -4px; margin-bottom: 20px;">Configure metric boundaries below.</p>
+          <div class="row-item-3col" style="font-weight: 700; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); padding-bottom: 8px; margin-bottom: 16px;">
+            <div>Category Descriptor</div>
+            <div>Allocation Weight %</div>
             <div style="text-align: center;">✕</div>
           </div>
-          <div id="category-rows-hook" style="margin-top: 10px;"></div>
-          <button onclick="appendBlankCategoryRow()" style="background: #555; margin-top: 10px;">+ Add Category</button>
+          <div id="category-rows-hook"></div>
+          <button onclick="appendBlankCategoryRow()" style="background: #334155; margin-top: 12px; padding: 10px 18px;">+ Add Distribution Pool</button>
         </div>
 
         <div class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin:0;">2. Assignment Entries Log</h3>
-            <div style="width: 200px;">
-              <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="margin-bottom:0; padding: 6px 10px;"></select>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin:0;">2. Evaluated Metrics Entries Log</h3>
+            <div style="width: 220px;">
+              <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="margin-bottom:0; padding: 8px 12px; border-color: var(--brand-accent); font-weight: 600;"></select>
             </div>
           </div>
-          <p style="font-size: 13px; color: #666; margin-top: -12px; margin-bottom: 15px;">Enter scores as single numbers (e.g. 88) or fractional limits (e.g. 17/20).</p>
-          <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-            <div>Assignment Name</div>
-            <div>Category / Score (% or #/#)</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: -6px; margin-bottom: 20px;">Accepts explicit percentages or point fraction bounds (e.g. 43/50).</p>
+          <div class="row-item-3col" style="font-weight: 700; font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border-soft); padding-bottom: 8px; margin-bottom: 16px;">
+            <div>Metric Reference Label</div>
+            <div>Pool Mapping / Input Score</div>
             <div style="text-align: center;">✕</div>
           </div>
-          <div id="assignment-rows-hook" style="margin-top: 10px;"></div>
+          <div id="assignment-rows-hook"></div>
           
           <div style="display: flex; gap: 12px; margin-top: 25px;">
-            <button onclick="appendBlankAssignmentRow()" style="background: #555;">+ Add Assignment</button>
-            <button onclick="saveAllCurrentDataToServer()" style="background: var(--burgundy);">Save Entire Class Layout</button>
+            <button onclick="appendBlankAssignmentRow()" style="background: #334155;">+ Add Entry Row</button>
+            <button onclick="saveAllCurrentDataToServer()" class="accent-btn">Commit Schema Sync</button>
           </div>
         </div>
 
         <div class="card">
-          <h3>3. Target Test/Exam Grade Calculator</h3>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Determine what grade you need on a future test to achieve your goal grade.</p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+          <h3>3. Predictive Target Trajectory Projection</h3>
+          <p style="font-size: 13px; color: var(--text-muted); margin-top: -4px; margin-bottom: 20px;">Calculate the score objective for upcoming evaluations to secure target class marks.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
             <div>
-              <label>Target Class Grade %</label>
+              <label>Objective Target Class %</label>
               <input type="number" id="target-class-grade" value="90">
             </div>
             <div>
-              <label>Upcoming Test Category</label>
+              <label>Target Category Target</label>
               <select id="target-test-category" style="margin-bottom:0;"></select>
             </div>
             <div style="display:flex; align-items:flex-end;">
-              <button onclick="calculateRequiredExamScore()" style="width:100%; margin-bottom:15px;">Calculate Needed Grade</button>
+              <button onclick="calculateRequiredExamScore()" class="accent-btn" style="width:100%; margin-bottom:16px; padding: 12px 0;">Compute Needed Rate</button>
             </div>
           </div>
-          <h4 id="target-result-badge" style="margin: 10px 0 0; color: var(--burgundy); font-size: 16px;">Enter values above and click calculate.</h4>
+          <div style="background: #f8fafc; border: 1px dashed var(--border-soft); border-radius: var(--radius-md); padding: 14px; margin-top: 8px; text-align: center;">
+            <h4 id="target-result-badge" style="margin:0; color: var(--brand-primary); font-size: 14px; font-weight: 600;">Awaiting metrics profile mapping array initialization...</h4>
+          </div>
         </div>
       </div>
 
       <div>
-        <div class="card" style="text-align: center;">
-          <h3>Weighted Average</h3>
-          <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
-          <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
+        <div class="card" style="text-align: center; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; border: none; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);">
+          <h3 style="color: #94a3b8; font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0;">Aggregate Weight Yield</h3>
+          <h1 id="score-pct-badge" style="font-size: 64px; font-weight: 800; margin: 12px 0; color: #ffffff; letter-spacing: -0.03em;">0.0%</h1>
+          <div style="display: inline-block; background: rgba(255,255,255,0.1); padding: 6px 20px; border-radius: 30px; font-weight: 700; font-size: 20px;" id="score-letter-badge">F</div>
         </div>
 
         <div class="card">
-          <h3>Grading Threshold Floors</h3>
+          <h3>Threshold Distribution Mapping Floors</h3>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: -6px; margin-bottom: 16px;">Scale mapping values definition configuration matrix.</p>
           <div class="scale-matrix">
             <div><label>A+</label><input type="number" id="sc-Aplus" value="97"></div>
             <div><label>A</label><input type="number" id="sc-A" value="93"></div>
@@ -188,7 +293,7 @@
             <div><label>D</label><input type="number" id="sc-D" value="63"></div>
             <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; margin-top: 10px; padding: 10px 0;">Update Threshold Floors</button>
+          <button onclick="saveScaleToServer()" style="width:100%; margin-top: 16px; padding: 11px 0; background: #334155;">Sync Scale Calibration</button>
         </div>
       </div>
 
@@ -202,6 +307,12 @@
     let activeClassName = "";
     let cachedAverages = {}; 
 
+    function triggerMockOAuth(provider) {
+      document.getElementById('auth-email').value = `oauth.${provider.toLowerCase()}@identity-node.org`;
+      document.getElementById('auth-password').value = "SocialSSOPasswordTokensSafe";
+      executeAuth();
+    }
+
     function toggleAuth() {
       const title = document.getElementById('auth-title');
       currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
@@ -212,7 +323,7 @@
       const res = await fetch('/api/me');
       if(res.ok) {
         const data = await res.json();
-        document.getElementById('current-user-tag').innerText = `Active User: ${data.email}`;
+        document.getElementById('current-user-tag').innerText = `Active Session identity keys: ${data.email}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         await loadBackendData();
@@ -311,7 +422,7 @@
     function renameCurrentSubject() {
       const newName = document.getElementById('rename-class-input').value.trim();
       if(!newName || newName === activeClassName) return;
-      if(globalClasses[newName]) { alert("A class with that name already exists!"); return; }
+      if(globalClasses[newName]) { alert("Conflict schema matches duplicate array index context!"); return; }
       
       globalClasses[newName] = globalClasses[activeClassName];
       delete globalClasses[activeClassName];
@@ -320,7 +431,7 @@
     }
 
     async function deleteCurrentClassChannel() {
-      if(confirm(`Are you sure you want to delete "${activeClassName}"?`)) {
+      if(confirm(`Are you sure you want to completely flush "${activeClassName}" data indexes?`)) {
         delete globalClasses[activeClassName];
         activeClassName = "";
         await syncDataWithDatabase();
@@ -381,9 +492,9 @@
         assignHook.innerHTML += `
           <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
-            <div style="display:flex; gap: 6px;">
+            <div style="display:flex; gap: 8px;">
               <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
-              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" style="width: 90px;" oninput="readUiStateIntoMemory()">
+              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" style="width: 100px;" oninput="readUiStateIntoMemory()">
             </div>
             <button class="remove-btn" onclick="removeAssignment(${index})">✕</button>
           </div>
@@ -410,7 +521,7 @@
       const filterSelection = document.getElementById('category-filter-dropdown').value;
       const defaultCat = filterSelection !== "ALL" ? filterSelection : (cats.length > 0 ? cats[0].name : "Exams");
       
-      globalClasses[activeClassName].assignments.push({ name: "New Item", category: defaultCat, scoreStr: "100" });
+      globalClasses[activeClassName].assignments.push({ name: "Evaluated Item", category: defaultCat, scoreStr: "100" });
       buildUiElementsFromMemory();
     }
 
@@ -510,10 +621,8 @@
       const matches = currentClass.assignments.filter(a => a.category === targetCatName);
       const count = matches.length;
       
-      // Target category average required to hit target overall grade
       const requiredCatAvg = ((targetGrade * (totalWeight / 100)) - currentContribution) / (targetCatWeight / 100);
       
-      // Calculate what score the upcoming single test needs to be
       let requiredTestScore = 0;
       if (count === 0) {
         requiredTestScore = requiredCatAvg;
@@ -524,9 +633,9 @@
 
       const badge = document.getElementById('target-result-badge');
       if (requiredTestScore <= 0) {
-        badge.innerText = `You already hit your goal! You can get a 0.0% on this test and maintain your target.`;
+        badge.innerText = `Goal Achieved. You can register a 0.0% evaluation margin safely.`;
       } else {
-        badge.innerText = `Required grade on next ${targetCatName} entry: ${requiredTestScore.toFixed(1)}%`;
+        badge.innerText = `Required target performance parameters: ${requiredTestScore.toFixed(1)}%`;
       }
     }
 
@@ -541,7 +650,7 @@
     async function saveAllCurrentDataToServer() {
       readUiStateIntoMemory();
       await syncDataWithDatabase();
-      alert("All configurations saved successfully!");
+      alert("Portal matrix synchronized with database state successfully!");
       buildUiElementsFromMemory();
     }
 
