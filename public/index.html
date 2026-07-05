@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Gradebook Portal - Elite Dark Mode</title>
+  <title>Premium Gradebook Portal - Elite Custom Dark Mode</title>
   <style>
     :root {
       --bg-space: #090d16;
@@ -38,7 +38,6 @@
       100% { transform: translate(-50%, -100%); opacity: 0; }
     }
 
-    /* In-App Fluid Toast Notification Banner */
     #toast-notification {
       position: fixed;
       top: 0;
@@ -57,7 +56,6 @@
     }
     .show-toast { animation: slideDownNotification 3s ease-in-out; }
 
-    /* Auth Styling */
     .auth-wrapper {
       display: flex;
       justify-content: center;
@@ -79,14 +77,12 @@
     .auth-header h2 { font-size: 24px; font-weight: 700; color: var(--brand-primary); margin: 0; }
     .auth-header p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 13px; }
 
-    /* Main Grid Frame Configurations */
     .dashboard-wrapper { max-width: 1150px; margin: 24px auto; padding: 0 20px; animation: fadeInUp 0.4s ease-out; }
     .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     
     label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; color: var(--text-muted); }
     
-    /* Global Select & Input Re-styling to keep them on brand */
-    input, select {
+    input {
       width: 100%;
       padding: 8px 12px;
       margin-bottom: 10px;
@@ -98,18 +94,63 @@
       color: #ffffff;
       transition: all 0.15s ease-in-out;
     }
-    input:focus, select:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-    
-    /* Vibe protection for select lists and popovers */
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2394a3b8' d='M0 0l5 5 5-5z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 30px;
-      cursor: pointer;
+    input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+
+    /* Custom Vibe-Matched Select Dropdown Component */
+    .vibe-dropdown {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 10px;
+      box-sizing: border-box;
     }
-    select option { background-color: #0f172a; color: #ffffff; }
+    .vibe-dropdown-select {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 8px 30px 8px 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .vibe-dropdown-select::after {
+      content: "";
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--text-muted);
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .vibe-dropdown-options {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background-color: #0f172a;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      margin-top: 4px;
+      padding: 4px 0;
+      z-index: 100;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    }
+    .vibe-dropdown-option {
+      padding: 8px 12px;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.1s ease;
+    }
+    .vibe-dropdown-option:hover { background-color: var(--border-soft); }
+    .vibe-dropdown.active .vibe-dropdown-options { display: block; }
 
     button {
       background: var(--brand-accent);
@@ -129,17 +170,29 @@
     .grid-container { display: grid; grid-template-columns: 1.9fr 1.1fr; gap: 20px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    /* Compact minimized cards */
     .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 20px; }
-    .card h3 { font-size: 15px; font-weight: 700; color: var(--brand-primary); margin: 0 0 12px 0; }
+    
+    /* Minimize Layout Headers */
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-header h3 { font-size: 15px; font-weight: 700; color: var(--brand-primary); margin: 0; }
+    .toggle-icon { color: var(--text-muted); font-size: 14px; font-weight: bold; font-family: monospace; }
+    
+    .card-content { margin-top: 12px; transition: all 0.2s ease; }
+    .card.minimized .card-content { display: none !important; }
+
     .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 30px; gap: 10px; align-items: center; margin-bottom: 6px; }
-    .row-item-3col input, .row-item-3col select { margin-bottom: 0; }
+    .row-item-3col input, .row-item-3col .vibe-dropdown { margin-bottom: 0; }
     
     .remove-btn { background: none; color: var(--text-muted); font-size: 16px; border: none; cursor: pointer; text-align: center; }
     .remove-btn:hover { color: #ef4444; }
     .hidden { display: none !important; }
     
-    /* Matrix layout optimized for full collection array */
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .scale-matrix div { background: #0f172a; padding: 6px; border: 1px solid var(--border-soft); border-radius: var(--radius-md); text-align: center; }
     .scale-matrix label { margin-bottom: 2px; font-size: 11px; }
@@ -156,9 +209,7 @@
         <h2 id="auth-title">Create Account</h2>
         <p>Access Local Grade Analytics Terminal</p>
       </div>
-
       <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 12px; text-align: center; margin-bottom: 12px;" class="hidden">Authentication processing error. Check parameters.</div>
-
       <form onsubmit="event.preventDefault(); executeAuth();">
         <label>Email Address</label>
         <input type="email" id="auth-email" placeholder="you@academy.com" required>
@@ -166,7 +217,6 @@
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
         <button type="submit" style="width:100%; margin-top: 4px; padding: 10px;">Authenticate</button>
       </form>
-      
       <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
     </div>
   </div>
@@ -183,7 +233,10 @@
     <div class="card" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; padding: 12px;">
       <div style="flex: 1.2; min-width: 150px;">
         <label>Active Course</label>
-        <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom:0;"></select>
+        <div class="vibe-dropdown" id="class-dropdown-wrapper">
+          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Course</div>
+          <div class="vibe-dropdown-options" id="class-dropdown-options"></div>
+        </div>
       </div>
       <div style="flex: 1; min-width: 150px;">
         <label>Rename Course</label>
@@ -201,40 +254,61 @@
 
     <div class="grid-container">
       <div>
-        <div class="card">
-          <h3>1. Category Weights Assignment</h3>
-          <div id="category-rows-hook"></div>
-          <button onclick="appendBlankCategoryRow()" style="background:#1e293b; margin-top:8px; padding: 6px 12px; font-size: 12px;">+ Add Category</button>
-        </div>
-
-        <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0;">2. Log Entries</h3>
-            <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="width:160px; margin-bottom:0; padding: 6px 10px;"></select>
+        <div class="card" id="card-weights">
+          <div class="card-header" onclick="toggleCardMinimize('card-weights')">
+            <h3>1. Category Weights Assignment</h3>
+            <span class="toggle-icon">[–]</span>
           </div>
-          <div id="assignment-rows-hook"></div>
-          <div style="display:flex; gap:10px; margin-top:12px;">
-            <button onclick="appendBlankAssignmentRow()" style="background:#1e293b; padding: 6px 12px; font-size: 12px;">+ Add Assignment</button>
-            <button onclick="saveAllCurrentDataToServer()" style="padding: 6px 14px; font-size: 12px;">Save Configuration Matrix</button>
+          <div class="card-content">
+            <div id="category-rows-hook"></div>
+            <button onclick="appendBlankCategoryRow()" style="background:#1e293b; margin-top:8px; padding: 6px 12px; font-size: 12px;">+ Add Category</button>
           </div>
         </div>
 
-        <div class="card">
-          <h3>3. Target Test/Exam Grade Needed Calculator</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-            <div>
-              <label>Target Class Grade %</label>
-              <input type="number" id="target-class-grade" value="90" style="margin-bottom:0;">
+        <div class="card" id="card-logs">
+          <div class="card-header" onclick="toggleCardMinimize('card-logs')">
+            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 15px;">
+              <h3>2. Log Entries</h3>
+              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:160px; margin-bottom:0;" onclick="event.stopPropagation()">
+                <div class="vibe-dropdown-select" id="log-filter-label">Show All</div>
+                <div class="vibe-dropdown-options" id="log-filter-options"></div>
+              </div>
             </div>
-            <div>
-              <label>Upcoming Test Category</label>
-              <select id="target-test-category" style="margin-bottom:0;"></select>
-            </div>
-            <div style="display:flex; align-items:flex-end;">
-              <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 8px 0;">Calculate Grade</button>
+            <span class="toggle-icon">[–]</span>
+          </div>
+          <div class="card-content">
+            <div id="assignment-rows-hook"></div>
+            <div style="display:flex; gap:10px; margin-top:12px;">
+              <button onclick="appendBlankAssignmentRow()" style="background:#1e293b; padding: 6px 12px; font-size: 12px;">+ Add Assignment</button>
+              <button onclick="saveAllCurrentDataToServer()" style="padding: 6px 14px; font-size: 12px;">Save Configuration Matrix</button>
             </div>
           </div>
-          <p id="target-result-badge" style="color:var(--brand-accent); font-weight:700; text-align:center; margin:10px 0 0 0; font-size: 13px;"></p>
+        </div>
+
+        <div class="card" id="card-calc">
+          <div class="card-header" onclick="toggleCardMinimize('card-calc')">
+            <h3>3. Target Test/Exam Grade Needed Calculator</h3>
+            <span class="toggle-icon">[–]</span>
+          </div>
+          <div class="card-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div>
+                <label>Target Class Grade %</label>
+                <input type="number" id="target-class-grade" value="90" style="margin-bottom:0;">
+              </div>
+              <div>
+                <label>Upcoming Test Category</label>
+                <div class="vibe-dropdown" id="calc-cat-wrapper">
+                  <div class="vibe-dropdown-select" id="calc-cat-label">Select Cat</div>
+                  <div class="vibe-dropdown-options" id="calc-cat-options"></div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 8px 0;">Calculate Grade</button>
+              </div>
+            </div>
+            <p id="target-result-badge" style="color:var(--brand-accent); font-weight:700; text-align:center; margin:10px 0 0 0; font-size: 13px;"></p>
+          </div>
         </div>
       </div>
 
@@ -273,11 +347,56 @@
     let globalScale = {};
     let globalClasses = {};
     let activeClassName = "";
+    let activeFilterValue = "ALL";
+    let activeCalcCategory = "";
+
+    // Card minimizing toggle engine
+    function toggleCardMinimize(id) {
+      const card = document.getElementById(id);
+      const icon = card.querySelector('.toggle-icon');
+      card.classList.toggle('minimized');
+      icon.innerText = card.classList.contains('minimized') ? '[+]' : '[–]';
+    }
+
+    // Modern Vibe-Dropdown UI Builder Helper
+    function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
+      const wrapper = document.getElementById(wrapperId);
+      const label = wrapper.querySelector('.vibe-dropdown-select');
+      const container = wrapper.querySelector('.vibe-dropdown-options');
+      
+      label.innerText = currentLabel;
+      container.innerHTML = '';
+      
+      optionsArray.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'vibe-dropdown-option';
+        item.innerText = opt.label;
+        item.onclick = (e) => {
+          e.stopPropagation();
+          label.innerText = opt.label;
+          wrapper.classList.remove('active');
+          onSelectCallback(opt.value);
+        };
+        container.appendChild(item);
+      });
+
+      label.onclick = (e) => {
+        e.stopPropagation();
+        const state = wrapper.classList.contains('active');
+        closeAllDropdowns();
+        if(!state) wrapper.classList.add('active');
+      };
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.vibe-dropdown').forEach(d => d.classList.remove('active'));
+    }
+    window.onclick = closeAllDropdowns;
 
     function showToast() {
       const toast = document.getElementById('toast-notification');
       toast.classList.remove('show-toast');
-      void toast.offsetWidth; // Trigger reflow to restart animation sequence
+      void toast.offsetWidth;
       toast.classList.add('show-toast');
     }
 
@@ -327,16 +446,21 @@
     }
 
     function populateClassDropdown() {
-      const dropdown = document.getElementById('class-dropdown');
-      dropdown.innerHTML = '';
       const keys = Object.keys(globalClasses);
       if(keys.length === 0) {
         globalClasses["General Class"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
         keys.push("General Class");
       }
-      keys.forEach(key => dropdown.innerHTML += `<option value="${key}">${key}</option>`);
       if (!activeClassName || !globalClasses[activeClassName]) activeClassName = keys[0];
-      dropdown.value = activeClassName;
+      
+      const optList = keys.map(k => ({ label: k, value: k }));
+      setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
+        activeClassName = val;
+        document.getElementById('rename-class-input').value = val;
+        populateCategoryFilters();
+        buildUiElementsFromMemory();
+      });
+
       document.getElementById('rename-class-input').value = activeClassName;
       populateCategoryFilters();
       buildUiElementsFromMemory();
@@ -344,17 +468,25 @@
 
     function populateCategoryFilters() {
       const currentClass = globalClasses[activeClassName] || { categories: [] };
-      const filterSelect = document.getElementById('category-filter-dropdown');
-      const targetCalcSelect = document.getElementById('target-test-category');
-      const prev = filterSelect.value;
       
-      filterSelect.innerHTML = '<option value="ALL">Show All Categories</option>';
-      targetCalcSelect.innerHTML = '';
-      currentClass.categories.forEach(c => {
-        filterSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        targetCalcSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      // Setup panel 2 filter
+      const filterOpts = [{ label: "Show All Categories", value: "ALL" }].concat(currentClass.categories.map(c => ({ label: c.name, value: c.name })));
+      if (!filterOpts.some(o => o.value === activeFilterValue)) activeFilterValue = "ALL";
+      const currentFilterLabel = filterOpts.find(o => o.value === activeFilterValue)?.label || "Show All Categories";
+      
+      setupCustomDropdown('log-filter-wrapper', currentFilterLabel, filterOpts, (val) => {
+        activeFilterValue = val;
+        buildUiElementsFromMemory();
       });
-      filterSelect.value = (prev && filterSelect.querySelector(`option[value="${prev}"]`)) ? prev : "ALL";
+
+      // Setup panel 3 calculator cat selector
+      const calcOpts = currentClass.categories.map(c => ({ label: c.name, value: c.name }));
+      if(calcOpts.length > 0) {
+        if (!calcOpts.some(o => o.value === activeCalcCategory)) activeCalcCategory = calcOpts[0].value;
+        setupCustomDropdown('calc-cat-wrapper', activeCalcCategory, calcOpts, (val) => { activeCalcCategory = val; });
+      } else {
+        setupCustomDropdown('calc-cat-wrapper', "None Available", [], () => {});
+      }
     }
 
     function parseScoreString(str) {
@@ -371,6 +503,7 @@
       const targetClass = globalClasses[activeClassName] || { categories: [], assignments: [] };
       const catHook = document.getElementById('category-rows-hook');
       catHook.innerHTML = '';
+      
       targetClass.categories.forEach((cat, index) => {
         catHook.innerHTML += `
           <div class="row-item-3col cat-data-row">
@@ -380,22 +513,33 @@
           </div>`;
       });
 
-      const filterSelection = document.getElementById('category-filter-dropdown').value;
       const assignHook = document.getElementById('assignment-rows-hook');
       assignHook.innerHTML = '';
+      
       targetClass.assignments.forEach((asm, index) => {
-        if (filterSelection !== "ALL" && asm.category !== filterSelection) return;
-        let selectOptions = '';
-        targetClass.categories.forEach(c => selectOptions += `<option value="${c.name}" ${asm.category === c.name ? 'selected' : ''}>${c.name}</option>`);
+        if (activeFilterValue !== "ALL" && asm.category !== activeFilterValue) return;
+        
+        const rowId = `asm-row-dropdown-${index}`;
         assignHook.innerHTML += `
           <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
             <div style="display:flex; gap: 6px;">
-              <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
+              <div class="vibe-dropdown" id="${rowId}">
+                <div class="vibe-dropdown-select">${asm.category}</div>
+                <div class="vibe-dropdown-options"></div>
+              </div>
               <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()">
             </div>
             <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${index},1); buildUiElementsFromMemory()">✕</button>
           </div>`;
+
+        setTimeout(() => {
+          const opts = targetClass.categories.map(c => ({ label: c.name, value: c.name }));
+          setupCustomDropdown(rowId, asm.category, opts, (val) => {
+            globalClasses[activeClassName].assignments[index].category = val;
+            readUiStateIntoMemory();
+          });
+        }, 0);
       });
       runCalculations();
     }
@@ -413,7 +557,6 @@
         const targetIdx = parseInt(row.getAttribute('data-index'));
         if(currentClass.assignments[targetIdx]) {
           currentClass.assignments[targetIdx].name = row.querySelector('.asm-name-input').value;
-          currentClass.assignments[targetIdx].category = row.querySelector('.asm-cat-select').value;
           currentClass.assignments[targetIdx].scoreStr = row.querySelector('.asm-score-input').value;
         }
       });
@@ -448,7 +591,7 @@
 
     function calculateRequiredExamScore() {
       const targetGrade = parseFloat(document.getElementById('target-class-grade').value) || 0;
-      const targetCatName = document.getElementById('target-test-category').value;
+      const targetCatName = activeCalcCategory;
       const currentClass = globalClasses[activeClassName];
       if (!currentClass || !targetCatName) return;
 
@@ -485,13 +628,13 @@
       readUiStateIntoMemory();
       await syncDataWithDatabase();
       showToast();
+      populateCategoryFilters();
       buildUiElementsFromMemory();
     }
 
     function appendBlankCategoryRow() { globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 }); populateCategoryFilters(); buildUiElementsFromMemory(); }
     function appendBlankAssignmentRow() { const cats = globalClasses[activeClassName].categories; globalClasses[activeClassName].assignments.push({ name: "New Item", category: cats.length > 0 ? cats[0].name : "Exams", scoreStr: "100" }); buildUiElementsFromMemory(); }
     function createNewClassChannel() { const name = document.getElementById('new-class-input').value.trim(); if(name) { globalClasses[name] = { categories: [{ name: "Exams", weight: 100 }], assignments: [] }; activeClassName = name; populateClassDropdown(); } }
-    function switchActiveClass() { activeClassName = document.getElementById('class-dropdown').value; populateCategoryFilters(); buildUiElementsFromMemory(); }
     function renameCurrentSubject() { const n = document.getElementById('rename-class-input').value.trim(); if(n && !globalClasses[n]) { globalClasses[n] = globalClasses[activeClassName]; delete globalClasses[activeClassName]; activeClassName = n; populateClassDropdown(); } }
     async function deleteCurrentClassChannel() { if(confirm("Delete class?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
     async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); showToast(); }
