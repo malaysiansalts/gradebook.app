@@ -58,8 +58,6 @@ function defaultCourse() {
 app.use(express.json());
 app.use(cookieParser());
 
-// This global middleware hooks into all HTML requests to dynamically inject 
-// professional entrance animations, card movements, and button states app-wide.
 app.use((req, res, next) => {
   const send = res.send;
   res.send = function (body) {
@@ -118,7 +116,6 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, "public")));
 
-// Route to handle browser automatic requests for favicon/tab icon
 app.get("/favicon.ico", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "favicon.ico"));
 });
@@ -302,7 +299,7 @@ app.get("/admin", (req, res) => {
     </head>
     <body>
       <h1>Developer Console</h1>
-      <p class="subtitle">System Variable Environment Target: <strong>${process.env.ADMIN_EMAIL || 'UNSET'}</strong></p>
+      <p class="subtitle">System Variable Environment Target: <strong>\${process.env.ADMIN_EMAIL || 'UNSET'}</strong></p>
       
       <div id="error-box" class="error"></div>
       
@@ -338,7 +335,7 @@ app.get("/admin", (req, res) => {
           }
         }
         loadMetrics();
-      </script>
+      <\/script>
     </body>
     </html>
   `);
