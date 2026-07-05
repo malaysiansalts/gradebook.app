@@ -36,11 +36,19 @@ app.post('/api/register', (req, res, next) => {
     const normalizedEmail = email.toLowerCase().trim();
     if (db.users[normalizedEmail]) return res.status(400).json({ error: "Account already exists" });
     
+    // Default multi-class setup
     db.users[normalizedEmail] = { 
       password, 
-      courses: [
-        { name: "Homework", weight: 20, currentAvg: 90, weightCompleted: 15, weightRemaining: 5 }
-      ],
+      classes: {
+        "Math": [
+          { name: "Exams", weight: 60, currentAvg: 85 },
+          { name: "Homework", weight: 40, currentAvg: 95 }
+        ],
+        "English": [
+          { name: "Essays", weight: 70, currentAvg: 90 },
+          { name: "Participation", weight: 30, currentAvg: 100 }
+        ]
+      },
       gradingScale: { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 }
     };
     writeDB(db);
@@ -67,15 +75,16 @@ app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status
 app.get('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
-  res.json({ courses: db.users[req.session.userEmail].courses || [], gradingScale: db.users[req.session.userEmail].gradingScale });
+  const user = db.users[req.session.userEmail];
+  res.json({ classes: user.classes || {}, gradingScale: user.gradingScale });
 });
 
 app.put('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
-  const { courses, gradingScale } = req.body;
+  const { classes, gradingScale } = req.body;
   const db = readDB();
   if (db.users[req.session.userEmail]) {
-    if (courses) db.users[req.session.userEmail].courses = courses;
+    if (classes) db.users[req.session.userEmail].classes = classes;
     if (gradingScale) db.users[req.session.userEmail].gradingScale = gradingScale;
     writeDB(db);
   }
