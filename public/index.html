@@ -89,7 +89,7 @@
 
     @keyframes toastInOut {
       0% { transform: translate(-50%, -50px); opacity: 0; }
-      15% { transform: translate(-50%, 24px); opacity: 1; }
+      15 { transform: translate(-50%, 24px); opacity: 1; }
       85% { transform: translate(-50%, 24px); opacity: 1; }
       100% { transform: translate(-50%, -50px); opacity: 0; }
     }
@@ -398,7 +398,7 @@
     }
 
     /* ----------------------------------------------------
-       ANTI-JUMP CONTAINER LAYOUT SYSTEM
+       ANTI-JUMP SYSTEM
        ---------------------------------------------------- */
     .dashboard-wrapper {
       max-width: 1280px;
@@ -504,7 +504,6 @@
       width: 100%;
     }
 
-    /* Strict alignment grid to prevent sizing shifting */
     .row-item {
       display: grid;
       grid-template-columns: 2fr 1.5fr 44px;
@@ -517,12 +516,11 @@
 
     .row-item input {
       width: 100% !important;
-      min-width: 0 !important; /* Permits compression into explicit track bounds */
+      min-width: 0 !important;
       box-sizing: border-box;
       margin-bottom: 0;
     }
 
-    /* Keeps side-by-side inputs locked regardless of numeric character counts */
     .score-split-container {
       display: flex;
       gap: 8px;
@@ -653,4 +651,561 @@
       <div id="auth-error" style="color: var(--accent-danger); font-weight: 600; font-size: 14px; text-align: center; margin-bottom: 16px;" class="hidden">An error occurred. Please check details and retry.</div>
       <form onsubmit="event.preventDefault(); runAuthSubmit();">
         <div style="margin-bottom: 16px;">
-          <label>Email Address</label
+          <label>Email Address</label>
+          <input type="email" id="auth-email" placeholder="name@example.com" required>
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label>Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••••••" required>
+        </div>
+        <button type="submit" class="primary-btn" style="width:100%; padding: 14px;">Continue</button>
+      </form>
+      <button class="secondary-btn" onclick="toggleAuthMode()" style="width: 100%; margin-top: 12px; padding: 10px;">Switch Login / Sign Up</button>
+    </div>
+  </div>
+
+  <div id="app-view" class="dashboard-wrapper hidden">
+    <div class="top-nav">
+      <div>
+        <h1>Dashboard</h1>
+        <p id="current-user-tag"></p>
+      </div>
+      <button onclick="logoutActiveSession()" class="secondary-btn" style="padding: 10px 16px;">Log Out</button>
+    </div>
+
+    <div class="toolbar-card">
+      <div>
+        <label>Current Class</label>
+        <div class="vibe-dropdown" id="class-dropdown-wrapper">
+          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Class</div>
+          <div class="vibe-dropdown-options" id="class-dropdown-options"></div>
+        </div>
+      </div>
+      <div>
+        <label>Rename Class</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="rename-class-input" style="margin-bottom:0;">
+          <button onclick="renameActiveSubject()" class="secondary-btn" style="padding: 0 16px;">Save</button>
+        </div>
+      </div>
+      <div>
+        <label>Add New Class</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-class-input" placeholder="e.g. AP Calc" style="margin-bottom:0;">
+          <button onclick="createNewClassChannel()" class="primary-btn" style="white-space: nowrap;">+ Add</button>
+          <button onclick="triggerClassDeletionModal()" class="danger-btn" style="white-space: nowrap;">Delete Class</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <div class="card-workspace-column">
+        
+        <div class="card" id="card-weights">
+          <div class="card-header" onclick="toggleCardMinimize('card-weights')">
+            <h3>1. Grade Categories & Weights</h3>
+            <span class="toggle-icon">Collapse</span>
+          </div>
+          <div class="card-content">
+            <div id="category-rows-hook"></div>
+            <button onclick="appendBlankCategoryRow()" class="secondary-btn" style="margin-top: 12px; padding: 8px 16px; font-size: 13px;">+ Add Category</button>
+          </div>
+        </div>
+
+        <div class="card" id="card-logs">
+          <div class="card-header" onclick="toggleCardMinimize('card-logs')">
+            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 24px;">
+              <h3>2. Assignment Log</h3>
+              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:200px; margin-bottom:0;" onclick="event.stopPropagation()">
+                <div class="vibe-dropdown-select" id="log-filter-label">All Categories</div>
+                <div class="vibe-dropdown-options" id="log-filter-options"></div>
+              </div>
+            </div>
+            <span class="toggle-icon">Collapse</span>
+          </div>
+          <div class="card-content">
+            <div id="assignment-rows-hook"></div>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+              <button onclick="appendBlankAssignmentRow()" class="secondary-btn" style="padding: 8px 16px; font-size: 13px;">+ Add Assignment</button>
+              <button onclick="saveWorkspaceStateToDatabase()" class="primary-btn" style="padding: 8px 20px; font-size: 13px;">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="card-calc">
+          <div class="card-header" onclick="toggleCardMinimize('card-calc')">
+            <h3>3. Target Grade Calculator</h3>
+            <span class="toggle-icon">Collapse</span>
+          </div>
+          <div class="card-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+              <div>
+                <label>Target Grade %</label>
+                <div class="stepper-container">
+                  <button class="stepper-btn" onclick="modifyInputStepValue('target-class-grade', -1)">−</button>
+                  <input type="number" id="target-class-grade" value="90">
+                  <button class="stepper-btn" onclick="modifyInputStepValue('target-class-grade', 1)">+</button>
+                </div>
+              </div>
+              <div>
+                <label>For Category</label>
+                <div class="vibe-dropdown" id="calc-cat-wrapper">
+                  <div class="vibe-dropdown-select" id="calc-cat-label">Select Category</div>
+                  <div class="vibe-dropdown-options" id="calc-cat-options"></div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button onclick="computeTargetRequiredExamScore()" class="primary-btn" style="width:100%; height:42px;">Calculate</button>
+              </div>
+            </div>
+            <p id="target-result-badge" style="color: var(--accent-blue); font-weight:700; text-align:center; margin-top:20px; font-size: 14px;"></p>
+          </div>
+        </div>
+        
+      </div>
+
+      <div>
+        <div class="card summary-card">
+          <span>Current Grade</span>
+          <h1 id="score-pct-badge">0.0%</h1>
+          <div id="score-letter-badge" class="letter-grade">F</div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 20px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Grading Scale</h3>
+          <div class="scale-matrix-grid">
+            <div><label>A+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aplus',1)">+</button></div></div>
+            <div><label>A</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-A',1)">+</button></div></div>
+            <div><label>A-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aminus',-1)">-</button><input type="number" id="sc-Aminus" value="90"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aminus',1)">+</button></div></div>
+            <div><label>B+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bplus',-1)">-</button><input type="number" id="sc-Bplus" value="87"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bplus',1)">+</button></div></div>
+            <div><label>B</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-B',-1)">-</button><input type="number" id="sc-B" value="83"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-B',1)">+</button></div></div>
+            <div><label>B-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bminus',-1)">-</button><input type="number" id="sc-Bminus" value="80"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bminus',1)">+</button></div></div>
+            <div><label>C+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cplus',-1)">-</button><input type="number" id="sc-Cplus" value="77"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cplus',1)">+</button></div></div>
+            <div><label>C</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-C',-1)">-</button><input type="number" id="sc-C" value="73"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-C',1)">+</button></div></div>
+            <div><label>C-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cminus',-1)">-</button><input type="number" id="sc-Cminus" value="70"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cminus',1)">+</button></div></div>
+            <div><label>D+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dplus',-1)">-</button><input type="number" id="sc-Dplus" value="67"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dplus',1)">+</button></div></div>
+            <div><label>D</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-D',-1)">-</button><input type="number" id="sc-D" value="63"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-D',1)">+</button></div></div>
+            <div><label>D-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dminus',1)">+</button></div></div>
+            <div style="grid-column: span 3;"><label>F Minimum</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:100px;"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-F',1)">+</button></div></div>
+          </div>
+          <button onclick="saveGradingScaleThreshToDB()" class="secondary-btn" style="width:100%; margin-top:20px; padding: 12px 0;">Save Grading Scale</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentAuthMode = 'register';
+    let globalScale = {};
+    let globalClasses = {};
+    let activeClassName = "";
+    let activeFilterValue = "ALL";
+    let activeCalcCategory = "";
+
+    function triggerClassDeletionModal() {
+      const modal = document.getElementById('custom-confirm-modal');
+      document.getElementById('modal-title').innerText = "Delete Class";
+      document.getElementById('modal-description').innerText = `Are you absolutely sure you want to delete "${activeClassName}"? This action can't be undone.`;
+      
+      const confirmBtn = document.getElementById('modal-confirm-action-btn');
+      confirmBtn.onclick = function() {
+        deleteActiveCourseChannel();
+        closeCustomVibeModal();
+      };
+      modal.classList.add('active');
+    }
+
+    function closeCustomVibeModal() {
+      document.getElementById('custom-confirm-modal').classList.remove('active');
+    }
+
+    function modifyInputStepValue(id, amount) {
+      const input = document.getElementById(id);
+      if(input) {
+        let val = parseFloat(input.value) || 0;
+        input.value = val + amount;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        pullUiStateDataToMemory();
+      }
+    }
+
+    function toggleCardMinimize(id) {
+      const card = document.getElementById(id);
+      const icon = card.querySelector('.toggle-icon');
+      if (card && icon) {
+        card.classList.toggle('minimized');
+        icon.innerText = card.classList.contains('minimized') ? 'Expand' : 'Collapse';
+      }
+    }
+
+    function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
+      const wrapper = document.getElementById(wrapperId);
+      if(!wrapper) return;
+      const label = wrapper.querySelector('.vibe-dropdown-select');
+      const container = wrapper.querySelector('.vibe-dropdown-options');
+      
+      label.innerText = currentLabel;
+      container.innerHTML = '';
+      
+      optionsArray.forEach(opt => {
+        const item = document.createElement('div');
+        item.className = 'vibe-dropdown-option';
+        item.innerText = opt.label;
+        item.onclick = (e) => {
+          e.stopPropagation();
+          label.innerText = opt.label;
+          wrapper.classList.remove('active');
+          onSelectCallback(opt.value);
+        };
+        container.appendChild(item);
+      });
+
+      label.onclick = (e) => {
+        e.stopPropagation();
+        const state = wrapper.classList.contains('active');
+        clearAllOpenDropdownWrappers();
+        if(!state) wrapper.classList.add('active');
+      };
+    }
+
+    function clearAllOpenDropdownWrappers() {
+      document.querySelectorAll('.vibe-dropdown').forEach(d => d.classList.remove('active'));
+    }
+    window.onclick = clearAllOpenDropdownWrappers;
+
+    function renderStatusToastAlert() {
+      const toast = document.getElementById('toast-notification');
+      if (toast) {
+        toast.classList.remove('show-toast');
+        void toast.offsetWidth; 
+        toast.classList.add('show-toast');
+      }
+    }
+
+    function toggleAuthMode() {
+      const title = document.getElementById('auth-title');
+      currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
+      if (title) {
+        title.innerText = (currentAuthMode === 'login') ? 'Log In' : 'Sign Up';
+      }
+    }
+
+    async function executeVerificationSessionValidation() {
+      const res = await fetch('/api/me');
+      if(res.ok) {
+        const data = await res.json();
+        const tag = document.getElementById('current-user-tag');
+        if (tag) tag.innerText = `Signed in as: ${data.email}`;
+        
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        await fetchUserDataPayloadFromDB();
+      }
+    }
+
+    async function runAuthSubmit() {
+      document.getElementById('auth-error').classList.add('hidden');
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const res = await fetch(`/api/${currentAuthMode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if(res.ok) window.location.reload();
+      else document.getElementById('auth-error').classList.remove('hidden');
+    }
+
+    async function logoutActiveSession() { 
+      await fetch('/api/logout', { method: 'POST' }); 
+      window.location.reload(); 
+    }
+
+    async function fetchUserDataPayloadFromDB() {
+      const res = await fetch('/api/userdata');
+      if(res.ok) {
+        const payload = await res.json();
+        globalScale = payload.gradingScale || { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 };
+        globalClasses = payload.classes || {};
+        
+        Object.keys(globalScale).forEach(key => {
+          const el = document.getElementById(`sc-${key}`); 
+          if(el) el.value = globalScale[key];
+        });
+        rebuildCourseProfileDropdownSelection();
+      }
+    }
+
+    function rebuildCourseProfileDropdownSelection() {
+      const keys = Object.keys(globalClasses);
+      if(keys.length === 0) {
+        globalClasses["Algebra 2"] = { categories: [{name:"Tests", weight: 60}, {name:"Homework", weight: 40}], assignments: [] };
+        keys.push("Algebra 2");
+      }
+      if (!activeClassName || !globalClasses[activeClassName]) activeClassName = keys[0];
+      
+      const optList = keys.map(k => ({ label: k, value: k }));
+      setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
+        activeClassName = val;
+        document.getElementById('rename-class-input').value = val;
+        rebuildFilteringSelectors();
+        generateInteractiveWorkspaceElements();
+      });
+
+      document.getElementById('rename-class-input').value = activeClassName;
+      rebuildFilteringSelectors();
+      generateInteractiveWorkspaceElements();
+    }
+
+    function rebuildFilteringSelectors() {
+      const currentClassData = globalClasses[activeClassName] || { categories: [], assignments: [] };
+      const categories = currentClassData.categories || [];
+      
+      const filterOpts = [{ label: "All Categories", value: "ALL" }];
+      categories.forEach(c => { if(c.name) filterOpts.push({ label: c.name, value: c.name }); });
+      
+      setupCustomDropdown('log-filter-wrapper', activeFilterValue === "ALL" ? "All Categories" : activeFilterValue, filterOpts, (val) => {
+        activeFilterValue = val;
+        generateInteractiveWorkspaceElements();
+      });
+
+      const calcOpts = categories.map(c => ({ label: c.name, value: c.name }));
+      if(calcOpts.length > 0) {
+        if(!activeCalcCategory || !categories.find(c => c.name === activeCalcCategory)) activeCalcCategory = calcOpts[0].value;
+        setupCustomDropdown('calc-cat-wrapper', activeCalcCategory, calcOpts, (val) => {
+          activeCalcCategory = val;
+        });
+      } else {
+        setupCustomDropdown('calc-cat-wrapper', "No Categories", [], () => {});
+      }
+    }
+
+    function generateInteractiveWorkspaceElements() {
+      const currentClassData = globalClasses[activeClassName] || { categories: [], assignments: [] };
+      
+      const catHook = document.getElementById('category-rows-hook');
+      catHook.innerHTML = '';
+      currentClassData.categories.forEach((cat, index) => {
+        const row = document.createElement('div');
+        row.className = 'row-item';
+        row.innerHTML = `
+          <input type="text" value="${cat.name || ''}" placeholder="Category Name" oninput="updateCategoryData(${index}, 'name', this.value)">
+          <div class="stepper-container">
+            <input type="number" value="${cat.weight || 0}" placeholder="Weight %" oninput="updateCategoryData(${index}, 'weight', this.value)">
+          </div>
+          <button class="remove-btn" onclick="removeCategoryRecord(${index})">×</button>
+        `;
+        catHook.appendChild(row);
+      });
+
+      const logHook = document.getElementById('assignment-rows-hook');
+      logHook.innerHTML = '';
+      currentClassData.assignments.forEach((asm, index) => {
+        if (activeFilterValue !== "ALL" && asm.category !== activeFilterValue) return;
+        
+        const row = document.createElement('div');
+        row.className = 'row-item';
+        row.innerHTML = `
+          <input type="text" value="${asm.name || ''}" placeholder="Assignment Name" oninput="updateAssignmentData(${index}, 'name', this.value)">
+          <div class="score-split-container">
+            <input type="number" value="${asm.score || 0}" placeholder="Score" oninput="updateAssignmentData(${index}, 'score', this.value)">
+            <input type="number" value="${asm.total || 100}" placeholder="Out of" oninput="updateAssignmentData(${index}, 'total', this.value)">
+          </div>
+          <button class="remove-btn" onclick="removeAssignmentRecord(${index})">×</button>
+        `;
+        logHook.appendChild(row);
+      });
+
+      calculateCurrentRunningGrades();
+    }
+
+    /* ----------------------------------------------------
+       FIX: DIRECT OBJECT DATA MODIFICATION PIPELINES
+       These functions update data structures silently. They do not trigger 
+       re-renders while you are working within an active box.
+       ---------------------------------------------------- */
+    function updateCategoryData(index, field, value) {
+      if(!globalClasses[activeClassName]) return;
+      if(field === 'weight') value = parseFloat(value) || 0;
+      globalClasses[activeClassName].categories[index][field] = value;
+      
+      // Calculate final score updates natively without breaking cursor positions
+      calculateCurrentRunningGrades();
+    }
+
+    function updateAssignmentData(index, field, value) {
+      if(!globalClasses[activeClassName]) return;
+      if(field === 'score' || field === 'total') value = parseFloat(value) || 0;
+      globalClasses[activeClassName].assignments[index][field] = value;
+      
+      // Calculate final score updates natively without breaking cursor positions
+      calculateCurrentRunningGrades();
+    }
+
+    function appendBlankCategoryRow() {
+      if(!globalClasses[activeClassName]) return;
+      globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 });
+      rebuildFilteringSelectors();
+      generateInteractiveWorkspaceElements();
+    }
+
+    function removeCategoryRecord(index) {
+      if(!globalClasses[activeClassName]) return;
+      globalClasses[activeClassName].categories.splice(index, 1);
+      rebuildFilteringSelectors();
+      generateInteractiveWorkspaceElements();
+    }
+
+    function appendBlankAssignmentRow() {
+      if(!globalClasses[activeClassName]) return;
+      const catName = activeFilterValue === "ALL" ? (globalClasses[activeClassName].categories[0]?.name || "General") : activeFilterValue;
+      globalClasses[activeClassName].assignments.push({ name: "New Assignment", category: catName, score: 100, total: 100 });
+      generateInteractiveWorkspaceElements();
+    }
+
+    function removeAssignmentRecord(index) {
+      if(!globalClasses[activeClassName]) return;
+      globalClasses[activeClassName].assignments.splice(index, 1);
+      generateInteractiveWorkspaceElements();
+    }
+
+    function createNewClassChannel() {
+      const input = document.getElementById('new-class-input');
+      const name = input.value.trim();
+      if(!name) return;
+      globalClasses[name] = { categories: [{name:"Tests", weight:60}], assignments: [] };
+      activeClassName = name;
+      input.value = '';
+      rebuildCourseProfileDropdownSelection();
+    }
+
+    function renameActiveSubject() {
+      const name = document.getElementById('rename-class-input').value.trim();
+      if(!name || name === activeClassName) return;
+      globalClasses[name] = globalClasses[activeClassName];
+      delete globalClasses[activeClassName];
+      activeClassName = name;
+      rebuildCourseProfileDropdownSelection();
+    }
+
+    function deleteActiveCourseChannel() {
+      delete globalClasses[activeClassName];
+      activeClassName = "";
+      rebuildCourseProfileDropdownSelection();
+      renderStatusToastAlert();
+    }
+
+    function calculateCurrentRunningGrades() {
+      const cls = globalClasses[activeClassName];
+      if(!cls || cls.categories.length === 0) return;
+
+      let totalWeightUsed = 0;
+      let finalWeightedGrade = 0;
+
+      cls.categories.forEach(cat => {
+        const catAsms = cls.assignments.filter(a => a.category === cat.name);
+        if(catAsms.length > 0) {
+          let earned = 0, total = 0;
+          catAsms.forEach(a => { earned += a.score; total += a.total; });
+          if(total > 0) {
+            finalWeightedGrade += (earned / total) * cat.weight;
+            totalWeightUsed += cat.weight;
+          }
+        }
+      });
+
+      let calculatedPct = 0;
+      if(totalWeightUsed > 0) {
+        calculatedPct = (finalWeightedGrade / totalWeightUsed) * 100;
+      }
+
+      document.getElementById('score-pct-badge').innerText = `${calculatedPct.toFixed(1)}%`;
+      
+      let letter = 'F';
+      const sortedScale = Object.entries(globalScale).sort((a,b) => b[1] - a[1]);
+      for(let [grade, threshold] of sortedScale) {
+        if(calculatedPct >= threshold) {
+          letter = grade.replace('minus','-').replace('plus','+');
+          break;
+        }
+      }
+      document.getElementById('score-letter-badge').innerText = letter;
+    }
+
+    function computeTargetRequiredExamScore() {
+      const target = parseFloat(document.getElementById('target-class-grade').value) || 0;
+      const cls = globalClasses[activeClassName];
+      if(!cls || !activeCalcCategory) return;
+
+      let fixedWeightedPoints = 0;
+      let totalWeightUsed = 0;
+      let targetCatWeight = 0;
+      let targetCatEarned = 0;
+      let targetCatTotal = 0;
+
+      cls.categories.forEach(cat => {
+        const catAsms = cls.assignments.filter(a => a.category === cat.name);
+        if(cat.name === activeCalcCategory) {
+          targetCatWeight = cat.weight;
+          catAsms.forEach(a => { targetCatEarned += a.score; targetCatTotal += a.total; });
+        } else if(catAsms.length > 0) {
+          let earned = 0, total = 0;
+          catAsms.forEach(a => { earned += a.score; total += a.total; });
+          if(total > 0) {
+            fixedWeightedPoints += (earned / total) * cat.weight;
+            totalWeightUsed += cat.weight;
+          }
+        }
+      });
+
+      totalWeightUsed += targetCatWeight;
+      if(totalWeightUsed === 0 || targetCatWeight === 0) {
+        document.getElementById('target-result-badge').innerText = "Verify category weights are set.";
+        return;
+      }
+
+      let pointsNeededInTargetCat = ((target / 100) * totalWeightUsed) - fixedWeightedPoints;
+      let decimalScoreNeededInTargetCat = pointsNeededInTargetCat / targetCatWeight;
+
+      if(targetCatTotal === 0) {
+        let requiredPercent = decimalScoreNeededInTargetCat * 100;
+        document.getElementById('target-result-badge').innerText = `You need an overall average of ${requiredPercent.toFixed(1)}% in this category.`;
+      } else {
+        let totalPointsNeeded = decimalScoreNeededInTargetCat * (targetCatTotal + 100);
+        let nextExamScoreNeeded = totalPointsNeeded - targetCatEarned;
+        
+        if(nextExamScoreNeeded < 0) {
+          document.getElementById('target-result-badge').innerText = `You've already locked it down! You can score a 0% on a 100pt assignment and keep your target.`;
+        } else {
+          document.getElementById('target-result-badge').innerText = `You need a score of ${nextExamScoreNeeded.toFixed(1)} / 100 on your next assignment to reach ${target}%.`;
+        }
+      }
+    }
+
+    function pullUiStateDataToMemory() {
+      Object.keys(globalScale).forEach(key => {
+        const input = document.getElementById(`sc-${key}`);
+        if(input) globalScale[key] = parseFloat(input.value) || 0;
+      });
+      calculateCurrentRunningGrades();
+    }
+
+    async function saveWorkspaceStateToDatabase() {
+      renderStatusToastAlert();
+    }
+
+    async function saveGradingScaleThreshToDB() {
+      pullUiStateDataToMemory();
+      renderStatusToastAlert();
+    }
+
+    window.onload = () => {
+      executeVerificationSessionValidation().catch(() => {
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        fetchUserDataPayloadFromDB();
+      });
+    };
+  </script>
+</body>
+</html>
