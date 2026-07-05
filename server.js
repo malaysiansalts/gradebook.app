@@ -41,7 +41,13 @@ app.post('/api/register', (req, res, next) => {
       return res.status(400).json({ error: "Account already exists" });
     }
     
-    db.users[normalizedEmail] = { password, courses: [] };
+    db.users[normalizedEmail] = { 
+      password, 
+      courses: [],
+      gradingScale: {
+        "A": 93, "B": 83, "C": 73, "D": 63
+      }
+    };
     writeDB(db);
     
     req.session.userEmail = normalizedEmail;
@@ -75,19 +81,35 @@ app.get('/api/me', (req, res) => {
   res.json({ email: req.session.userEmail });
 });
 
+// Settings / Custom Grading Scale
+app.get('/api/settings', (req, res) => {
+  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  const db = readDB();
+  res.json({ gradingScale: db.users[req.session.userEmail].gradingScale });
+});
+
+app.put('/api/settings', (req, res) => {
+  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  const { gradingScale } = req.body;
+  const db = readDB();
+  if (db.users[req.session.userEmail]) {
+    db.users[req.session.userEmail].gradingScale = gradingScale;
+    writeDB(db);
+  }
+  res.json({ success: true });
+});
+
 // Course Data Routes
 app.get('/api/courses', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
-  const user = db.users[req.session.userEmail];
-  res.json({ courses: user.courses || [] });
+  res.json({ courses: db.users[req.session.userEmail].courses || [] });
 });
 
 app.put('/api/courses', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const { courses } = req.body;
   const db = readDB();
-  
   if (db.users[req.session.userEmail]) {
     db.users[req.session.userEmail].courses = courses;
     writeDB(db);
