@@ -72,11 +72,15 @@
     <div class="auth-card">
       <h2 id="auth-title">Create Account</h2>
       <div id="auth-error" style="color: var(--burgundy); font-weight: bold; margin-bottom: 15px;" class="hidden">Authentication error. Try again.</div>
-      <label>Email</label>
-      <input type="email" id="auth-email" placeholder="student@domain.com">
-      <label>Password</label>
-      <input type="password" id="auth-password" placeholder="••••••••••••">
-      <button style="width:100%;" onclick="executeAuth()">Submit</button>
+      
+      <form onsubmit="event.preventDefault(); executeAuth();">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="student@domain.com" required>
+        <label>Password</label>
+        <input type="password" id="auth-password" placeholder="••••••••••••" required>
+        <button type="submit" style="width:100%;">Submit</button>
+      </form>
+      
       <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
     </div>
   </div>
