@@ -44,10 +44,10 @@ app.post('/api/register', (req, res, next) => {
     db.users[normalizedEmail] = { 
       password, 
       courses: [
-        { name: "Homework", weight: 0.20, currentAvg: 90, weightCompleted: 0.15, weightRemaining: 0.05 },
-        { name: "Exams", weight: 0.50, currentAvg: 85, weightCompleted: 0.25, weightRemaining: 0.25 },
-        { name: "Quizzes", weight: 0.20, currentAvg: 88, weightCompleted: 0.10, weightRemaining: 0.10 },
-        { name: "Participation", weight: 0.10, currentAvg: 100, weightCompleted: 0.10, weightRemaining: 0.00 }
+        { name: "Homework", weight: 20, currentAvg: 90, weightCompleted: 15, weightRemaining: 5 },
+        { name: "Exams", weight: 50, currentAvg: 85, weightCompleted: 25, weightRemaining: 25 },
+        { name: "Quizzes", weight: 20, currentAvg: 88, weightCompleted: 10, weightRemaining: 10 },
+        { name: "Participation", weight: 10, currentAvg: 100, weightCompleted: 10, weightRemaining: 0 }
       ],
       gradingScale: {
         "Aplus": 97, "A": 93, "Aminus": 90,
