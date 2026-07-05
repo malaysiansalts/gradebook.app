@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Class Gradebook</title>
+  <title>Academic Gradebook</title>
   <style>
     :root {
       --bg-cream: #faf8f5;
@@ -52,7 +52,7 @@
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .scale-matrix input { padding: 6px; text-align: center; margin-bottom: 6px; }
 
-    /* Clean Input Rows */
+    /* Main Table Form Input Layout Rows */
     .course-row-item {
       display: grid;
       grid-template-columns: 3fr 1fr 1fr 40px;
@@ -96,7 +96,10 @@
         <label>Active Class Subject</label>
         <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0;"></select>
       </div>
-      <button onclick="createNewClassChannel()" style="background: #555; white-space: nowrap;">+ Create New Class</button>
+      <div style="display: flex; gap: 8px; align-items: flex-end;">
+        <input type="text" id="new-class-input" placeholder="e.g., Chemistry" style="margin-bottom: 0; width: 180px;">
+        <button onclick="createNewClassChannel()" style="white-space: nowrap;">+ Add Class</button>
+      </div>
     </div>
 
     <div class="grid-container">
@@ -104,7 +107,7 @@
       <div>
         <div class="card">
           <h2 id="active-class-title">Class Breakdown</h2>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Enter your category names, their percentage weights, and your grade averages.</p>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Enter your category titles, total breakdown weights, and current score averages manually.</p>
 
           <div class="course-row-item" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
             <div>Category / Assignment Name</div>
@@ -128,7 +131,7 @@
           <h3>Class Average</h3>
           <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
           <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated running total weight.</p>
+          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated relative total weight average.</p>
         </div>
 
         <div class="card">
@@ -229,13 +232,15 @@
     }
 
     function createNewClassChannel() {
-      const name = prompt("Enter new class subject name (e.g., Chemistry):");
+      const inputEl = document.getElementById('new-class-input');
+      const name = inputEl.value;
       if(name && name.trim() !== "") {
         const cleanName = name.trim();
         if(!globalClasses[cleanName]) {
           globalClasses[cleanName] = [{ name: "Exams", weight: 50, currentAvg: 100 }];
         }
         activeClassName = cleanName;
+        inputEl.value = ""; 
         populateClassDropdown();
       }
     }
@@ -324,7 +329,6 @@
 
       let overallAverage = 0;
       if (totalWeightEntered > 0) {
-        // Adjust average to reflect relative weight scale
         overallAverage = (weightedPointsSum / (totalWeightEntered / 100));
       }
       
