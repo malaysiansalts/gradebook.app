@@ -1,420 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gradebook</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --paper: #F6F3EC;
-    --paper-dim: #EFE9DA;
-    --line: #D8D1BF;
-    --ink: #2E3B4E;
-    --ink-dark: #1E2733;
-    --brick: #8B3A3A;
-    --tan: #D8B08C;
-    --muted: #8A806B;
-    --slate-light: #B9C2CF;
-    --whatif-bg: #FFFDF4;
-    --whatif-border: #E2B276;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', sans-serif; }
-  .serif { font-family: 'Fraunces', serif; }
-  .mono { font-family: 'IBM Plex Mono', monospace; }
-  header { position: sticky; top: 0; z-index: 10; background: rgba(246,243,236,0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
-  .header-inner { max-width: 1000px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
-  .logo-badge { width: 36px; height: 36px; border-radius: 50%; background: var(--brick); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .logo-badge svg { width: 18px; height: 18px; color: var(--paper); }
-  h1.title { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; flex: 1; }
-  .account-area { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
-  .logout-btn { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-family: inherit; font-size: 13px; color: var(--ink); cursor: pointer; transition: all 0.2s ease; }
-  .logout-btn:hover { background: var(--paper-dim); }
-  .layout { max-width: 1000px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: 220px 1fr; gap: 32px; }
-  @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
-  .sidebar-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; }
-  .course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-  .course-row { display: flex; align-items: center; gap: 6px; }
-  .course-btn { flex: 1; min-width: 0; text-align: left; padding: 10px 12px; border-radius: 8px; border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink); transition: background 0.2s; }
-  .course-btn:hover { background: var(--paper-dim); }
-  .course-btn.active { background: var(--ink); color: var(--paper); }
-  .course-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .course-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); flex-shrink: 0; }
-  .course-btn.active .course-pct { color: var(--tan); }
-  .icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .icon-btn:hover { color: var(--brick); }
-  .icon-btn svg { width: 15px; height: 15px; }
-  .add-course-btn { margin-top: 8px; width: 100%; display: flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; color: var(--brick); font-family: inherit; font-size: 14px; padding: 10px 12px; border-radius: 8px; }
-  .add-course-btn:hover { background: var(--paper-dim); }
-  .course-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-  .course-title-input { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 600; background: transparent; border: none; border-bottom: 2px solid transparent; outline: none; flex: 1; min-width: 0; padding: 2px 0; color: var(--ink); }
-  .course-title-input:focus { border-bottom-color: var(--brick); }
-  .banner { border-radius: 14px; background: var(--ink-dark); color: var(--paper); padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-  .banner.whatif-active-banner { background: #3E3225; border: 1px solid var(--whatif-border); }
-  .banner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); margin-bottom: 6px; }
-  .banner-grade { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; display: flex; align-items: baseline; gap: 12px; }
-  .banner-letter { color: var(--tan); font-size: 24px; }
-  .banner-warning { font-size: 12px; color: var(--tan); text-align: right; max-width: 160px; }
-  .category { border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.55); overflow: hidden; margin-bottom: 14px; }
-  .category-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--paper-dim); }
-  .chevron { background: none; border: none; cursor: pointer; color: var(--muted); display:flex; }
-  .chevron svg { width: 16px; height: 16px; }
-  .category-name-input { font-weight: 500; background: transparent; border: none; outline: none; flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--ink); }
-  .weight-input-wrap { display: flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); flex-shrink: 0; }
-  .weight-input { width: 48px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--line); outline: none; font-family: inherit; font-size: 13px; color: var(--ink); }
-  .weight-input:focus { border-bottom-color: var(--brick); }
-  .cat-pct { font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 60px; text-align: right; flex-shrink: 0; }
-  .category-body { padding: 12px 16px; }
-  .empty-note { font-size: 13px; color: var(--muted); font-style: italic; margin: 0 0 8px; }
-  .item-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 4px; border-radius: 6px; }
-  .item-row.what-if-row { background: var(--whatif-bg); border: 1px dashed var(--whatif-border); }
-  .item-label-input { flex: 1; min-width: 0; font-size: 13px; background: transparent; border: none; border-bottom: 1px solid transparent; outline: none; font-family: inherit; color: var(--ink); }
-  .item-label-input:focus { border-bottom-color: var(--brick); }
-  .item-num-input { width: 72px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; outline: none; color: var(--ink); }
-  .item-num-input:focus { border-color: var(--brick); }
-  .slash { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
-  .add-buttons-group { display: flex; gap: 14px; margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
-  .add-item-btn, .add-whatif-btn, .add-category-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--brick); padding: 4px 0; }
-  .add-whatif-btn { color: #B37426; font-weight: 500; }
-  .add-category-btn { border: 1px solid var(--line); border-radius: 10px; color: var(--ink); padding: 10px 16px; font-size: 14px; background: rgba(255,255,255,0.4); }
-  .add-category-btn:hover { background: var(--paper-dim); }
-  .add-item-btn svg, .add-whatif-btn svg, .add-category-btn svg { width: 14px; height: 14px; }
-  .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
-  .auth-card { width: 100%; max-width: 380px; background: rgba(255,255,255,0.6); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
-  .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-  .auth-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 0 0 4px; }
-  .auth-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
-  .field-label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-  .field-input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit; font-size: 14px; background: var(--paper); outline: none; margin-bottom: 14px; }
-  .field-input:focus { border-color: var(--brick); }
-  .auth-submit { width: 100%; padding: 11px; border: none; border-radius: 8px; background: var(--brick); color: var(--paper); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-  .auth-switch { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
-  .auth-switch button { background: none; border: none; color: var(--brick); cursor: pointer; font-family: inherit; font-size: 13px; padding: 0; }
-  .auth-error { color: var(--brick); font-size: 13px; margin: -6px 0 14px; }
-  .hidden { display: none !important; }
-  .course-row { cursor: grab; user-select: none; }
-  .course-row:active { cursor: grabbing; }
-  .course-row.dragging { opacity: 0.4; background: var(--paper-dim); border-radius: 8px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gradebook Application</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #faf8f5; color: #333; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    h2, h3 { color: #732626; }
+    .card { background: #fffcf9; border: 1px solid #eee; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    label { display: block; margin: 10px 0 5px; font-weight: bold; }
+    input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { background: #732626; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    button:hover { background: #5c1e1e; }
+    .scale-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    #drop-zone { border: 2px dashed #732626; padding: 30px; text-align: center; border-radius: 8px; background: #fffdfb; margin-bottom: 20px; transition: 0.2s; }
+    #drop-zone.drag-active { background: #f0e6e6; border-color: #5c1e1e; }
+    .auth-box { max-width: 400px; margin: 100px auto; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
 
-<div id="auth-screen" class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2.5 3 6 3s6-1 6-3v-5"/></svg></div>
-      <span class="serif" style="font-size:20px;font-weight:600;">Gradebook</span>
-    </div>
-    <h2 class="auth-title serif" id="auth-title">Welcome back</h2>
-    <p class="auth-sub" id="auth-sub">Log in to see your grades.</p>
-    <p class="auth-error hidden" id="auth-error"></p>
-    <form id="auth-form">
-      <label class="field-label" for="auth-email">Email</label>
-      <input class="field-input" id="auth-email" type="email" autocomplete="email" required>
-      <label class="field-label" for="auth-password">Password</label>
-      <input class="field-input" id="auth-password" type="password" autocomplete="current-password" required>
-      <button class="auth-submit" type="submit" id="auth-submit-btn">Log in</button>
-    </form>
-    <div class="auth-switch">
-      <span id="auth-switch-text">Don't have an account?</span>
-      <button id="auth-switch-btn">Sign up</button>
-    </div>
+  <div id="auth-view" class="container auth-box">
+    <h2>Gradebook Auth</h2>
+    <label>Email</label>
+    <input type="email" id="auth-email" placeholder="email@domain.com">
+    <label>Password</label>
+    <input type="password" id="auth-password" placeholder="••••••••">
+    <button onclick="handleAuth('register')" style="margin-bottom: 10px;">Sign Up</button>
+    <button onclick="handleAuth('login')" style="background: #555;">Log In</button>
   </div>
-</div>
 
-<div id="app-screen" class="hidden">
-  <header>
-    <div class="header-inner">
-      <div class="logo-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2.5 3 6 3s6-1 6-3v-5"/></svg></div>
-      <h1 class="title serif">Gradebook</h1>
-      <div class="account-area">
-        <span id="account-email"></span>
-        <button class="logout-btn" id="logout-btn">Log out</button>
+  <div id="app-view" class="container hidden">
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+      <h2>Your Dashboard</h2>
+      <button onclick="logout()" style="width: auto; background: #555; padding: 8px 15px;">Log Out</button>
+    </div>
+
+    <div id="drop-zone">
+      <p style="font-weight: bold; margin: 0;">Drag & Drop your Syllabus / Curriculum JSON file here to auto-fill courses</p>
+    </div>
+
+    <div class="card">
+      <h3>School Grading Scale Minimums (%)</h3>
+      <div class="scale-grid">
+        <div><label>A</label><input type="number" id="scale-a" value="93"></div>
+        <div><label>B</label><input type="number" id="scale-b" value="83"></div>
+        <div><label>C</label><input type="number" id="scale-c" value="73"></div>
+        <div><label>D</label><input type="number" id="scale-d" value="63"></div>
       </div>
+      <button onclick="saveScale()">Save Scale Changes</button>
     </div>
-  </header>
-  <div class="layout">
-    <aside>
-      <div class="sidebar-label">Courses</div>
-      <ul class="course-list" id="course-list"></ul>
-      <button class="add-course-btn" id="add-course-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M12 5v14M5 12h14"/></svg>Add course</button>
-    </aside>
-    <main id="main-content"></main>
+
+    <div class="card">
+      <h3>Target Grade Target Finder</h3>
+      <label>What Final Grade total do you want? (%)</label>
+      <input type="number" id="target-goal" value="90" oninput="calculateTargets()">
+      
+      <div id="sections-display" style="margin-top: 20px;">
+        </div>
+    </div>
   </div>
-</div>
 
-<script>
-const uid = () => Math.random().toString(36).slice(2, 10);
+  <script>
+    let currentScale = { A: 93, B: 83, C: 73, D: 63 };
+    let mockCourseData = [
+      { name: "Homework", weight: 0.30, currentAvg: 88, weightCompleted: 0.20, weightRemaining: 0.10 },
+      { name: "Exams", weight: 0.50, currentAvg: 78, weightCompleted: 0.25, weightRemaining: 0.25 },
+      { name: "Quizzes", weight: 0.20, currentAvg: 92, weightCompleted: 0.15, weightRemaining: 0.05 }
+    ];
 
-async function api(path, options = {}) {
-  const res = await fetch(path, {
-    ...options,
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    credentials: "same-origin",
-  });
-  let body = null;
-  try { body = await res.json(); } catch (e) {}
-  if (!res.ok) throw new Error((body && body.error) || "Something went wrong.");
-  return body;
-}
-
-let state = { courses: [], activeId: null };
-let authMode = "login";
-
-const authScreen = document.getElementById("auth-screen");
-const appScreen = document.getElementById("app-screen");
-const authForm = document.getElementById("auth-form");
-const authError = document.getElementById("auth-error");
-const authTitle = document.getElementById("auth-title");
-const authSub = document.getElementById("auth-sub");
-const authSubmitBtn = document.getElementById("auth-submit-btn");
-const authSwitchText = document.getElementById("auth-switch-text");
-const authSwitchBtn = document.getElementById("auth-switch-btn");
-const passwordInput = document.getElementById("auth-password");
-
-function setAuthMode(mode) {
-  authMode = mode;
-  authError.classList.add("hidden");
-  if (mode === "login") {
-    authTitle.textContent = "Welcome back"; authSub.textContent = "Log in to see your grades."; authSubmitBtn.textContent = "Log in"; authSwitchText.textContent = "Don't have an account?"; authSwitchBtn.textContent = "Sign up"; passwordInput.autocomplete = "current-password";
-  } else {
-    authTitle.textContent = "Create your account"; authSub.textContent = "Track grades across every device."; authSubmitBtn.textContent = "Sign up"; authSwitchText.textContent = "Already have an account?"; authSwitchBtn.textContent = "Log in"; passwordInput.autocomplete = "new-password";
-  }
-}
-authSwitchBtn.addEventListener("click", () => setAuthMode(authMode === "login" ? "register" : "login"));
-
-authForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  authError.classList.add("hidden");
-  const email = document.getElementById("auth-email").value;
-  const password = document.getElementById("auth-password").value;
-  authSubmitBtn.disabled = true;
-  try {
-    const endpoint = authMode === "login" ? "/api/login" : "/api/register";
-    const data = await api(endpoint, { method: "POST", body: JSON.stringify({ email, password }) });
-    await enterApp(data.email);
-  } catch (err) {
-    authError.textContent = err.message; authError.classList.remove("hidden");
-  } finally { authSubmitBtn.disabled = false; }
-});
-
-document.getElementById("logout-btn").addEventListener("click", async () => {
-  await api("/api/logout", { method: "POST" });
-  appScreen.classList.add("hidden"); authScreen.classList.remove("hidden"); authForm.reset(); setAuthMode("login");
-});
-
-async function enterApp(email) {
-  document.getElementById("account-email").textContent = email;
-  const data = await api("/api/courses");
-  state.courses = data.courses && data.courses.length ? data.courses : [defaultCourse()];
-  state.activeId = state.courses[0].id;
-  authScreen.classList.add("hidden"); appScreen.classList.remove("hidden");
-  render();
-}
-
-(async () => { try { const me = await api("/api/me"); await enterApp(me.email); } catch (e) {} })();
-
-function defaultCourse() {
-  return {
-    id: uid(), name: "Untitled Course",
-    categories: [
-      { id: uid(), name: "Homework", weight: 30, open: true, items: [] },
-      { id: uid(), name: "Exams", weight: 70, open: true, items: [] },
-    ],
-  };
-}
-
-function letterGrade(pct) {
-  if (pct === null) return "—";
-  if (pct >= 93) return "A"; if (pct >= 90) return "A-";
-  if (pct >= 87) return "B+"; if (pct >= 83) return "B"; if (pct >= 80) return "B-";
-  if (pct >= 77) return "C+"; if (pct >= 73) return "C"; if (pct >= 70) return "C-";
-  if (pct >= 67) return "D+"; if (pct >= 63) return "D"; if (pct >= 60) return "D-";
-  return "F";
-}
-
-function computeCourse(course) {
-  let weightedSum = 0, weightUsed = 0, containsWhatIf = false;
-  const catResults = course.categories.map((cat) => {
-    const graded = cat.items.filter(i => i.earned !== "" && i.possible !== "" && Number(i.possible) > 0);
-    if (cat.items.some(i => i.isWhatIf)) containsWhatIf = true;
-    const earned = graded.reduce((s, i) => s + Number(i.earned), 0);
-    const possible = graded.reduce((s, i) => s + Number(i.possible), 0);
-    const pct = possible > 0 ? (earned / possible) * 100 : null;
-    if (pct !== null) { weightedSum += pct * Number(cat.weight || 0); weightUsed += Number(cat.weight || 0); }
-    return { id: cat.id, pct };
-  });
-  const overall = weightUsed > 0 ? weightedSum / weightUsed : null;
-  const totalWeight = course.categories.reduce((s, c) => s + Number(c.weight || 0), 0);
-  return { catResults, overall, totalWeight, containsWhatIf };
-}
-
-let saveTimer = null;
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    // Strip temporary 'What-If' mock nodes entirely from array payload before background saving
-    const persistentCourses = structuredClone(state.courses).map(c => {
-      c.categories.forEach(cat => { cat.items = cat.items.filter(i => !i.isWhatIf); });
-      return c;
-    });
-    try { await api("/api/courses", { method: "PUT", body: JSON.stringify({ courses: persistentCourses }) }); }
-    catch (e) { console.error("save failed", e); }
-  }, 400);
-}
-
-function getActive() { return state.courses.find(c => c.id === state.activeId) || state.courses[0]; }
-function updateActive(fn) {
-  const idx = state.courses.findIndex(c => c.id === state.activeId);
-  state.courses[idx] = fn(structuredClone(state.courses[idx]));
-  scheduleSave(); render();
-}
-function setActive(id) { state.activeId = id; render(); }
-function addCourse() { const c = defaultCourse(); state.courses.push(c); state.activeId = c.id; scheduleSave(); render(); }
-function removeCourse(id) {
-  state.courses = state.courses.filter(c => c.id !== id);
-  if (state.courses.length === 0) { const fresh = defaultCourse(); state.courses = [fresh]; state.activeId = fresh.id; }
-  else if (id === state.activeId) { state.activeId = state.courses[0].id; }
-  scheduleSave(); render();
-}
-
-function el(tag, props = {}, children = []) {
-  const node = document.createElement(tag);
-  Object.entries(props).forEach(([k, v]) => {
-    if (k === "class") node.className = v;
-    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-    else if (v !== undefined && v !== null) node.setAttribute(k, v);
-  });
-  (Array.isArray(children) ? children : [children]).forEach(c => {
-    if (c === null || c === undefined) return;
-    node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  });
-  return node;
-}
-
-const trashSVG = () => { 
-  const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`; return d.firstChild;
-};
-
-function attachSidebarDragListeners(container) {
-  container.addEventListener('dragstart', (e) => { const targetRow = e.target.closest('.course-row'); if (targetRow) { targetRow.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; } });
-  container.addEventListener('dragend', (e) => {
-    const targetRow = e.target.closest('.course-row'); if (targetRow) targetRow.classList.remove('dragging');
-    const currentRows = [...container.querySelectorAll('.course-row')]; const reorderedIds = currentRows.map(row => row.getAttribute('data-id'));
-    state.courses = reorderedIds.map(id => state.courses.find(c => c.id === id)); scheduleSave();
-  });
-  container.addEventListener('dragover', (e) => {
-    e.preventDefault(); const draggingRow = container.querySelector('.course-row.dragging'); if (!draggingRow) return;
-    const siblings = [...container.querySelectorAll('.course-row:not(.dragging)')];
-    const nextSibling = siblings.find(sibling => { const box = sibling.getBoundingClientRect(); return e.clientY <= box.top + box.height / 2; });
-    if (nextSibling) container.insertBefore(draggingRow, nextSibling); else container.appendChild(draggingRow);
-  });
-}
-
-function render() {
-  let focusedId = null, selStart = null, selEnd = null;
-  if (document.activeElement && document.activeElement.hasAttribute("data-focus-id")) {
-    focusedId = document.activeElement.getAttribute("data-focus-id"); selStart = document.activeElement.selectionStart; selEnd = document.activeElement.selectionEnd;
-  }
-
-  const list = document.getElementById("course-list"); list.innerHTML = "";
-  state.courses.forEach(c => {
-    const cData = computeCourse(c); const isSel = c.id === state.activeId;
-    const courseRow = el("li", { class: "course-row", draggable: "true", "data-id": c.id }, [
-      el("button", { class: `course-btn ${isSel?'active':''}`, onclick: () => setActive(c.id) }, [
-        el("span", { class: "course-name" }, c.name), el("span", { class: "course-pct" }, cData.overall !== null ? `${cData.overall.toFixed(1)}%` : "—")
-      ]),
-      el("button", { class: "icon-btn", onclick: (e) => { e.stopPropagation(); removeCourse(c.id); } }, [trashSVG()])
-    ]);
-    list.appendChild(courseRow);
-  });
-  attachSidebarDragListeners(list);
-
-  const main = document.getElementById("main-content"); main.innerHTML = "";
-  const course = getActive(); if (!course) return;
-  const metrics = computeCourse(course);
-
-  const titleInput = el("input", { class: "course-title-input", "data-focus-id": "course-title", value: course.name, oninput: (e) => { updateActive(c => { c.name = e.target.value; return c; }); } });
-  main.appendChild(el("div", { class: "course-header" }, [titleInput]));
-
-  const labelPrefix = metrics.containsWhatIf ? "PREDICTED GRADE (What-If Mode Active)" : `Total Category Weight: ${metrics.totalWeight}%`;
-  const bannerWarning = metrics.totalWeight !== 100 && !metrics.containsWhatIf
-    ? el("div", { class: "banner-warning" }, `Weights equal ${metrics.totalWeight}%. Adjust categories to reach 100%.`)
-    : (metrics.containsWhatIf ? el("div", { class: "banner-warning", style: "color: var(--tan);" }, "Showing simulated calculation. These changes won't be saved.") : null);
-
-  main.appendChild(el("div", { class: `banner ${metrics.containsWhatIf ? 'whatif-active-banner' : ''}` }, [
-    el("div", {}, [
-      el("div", { class: "banner-label" }, labelPrefix),
-      el("div", { class: "banner-grade" }, [
-        document.createTextNode(metrics.overall !== null ? `${metrics.overall.toFixed(1)}%` : "—"),
-        el("span", { class: "banner-letter" }, ` ${letterGrade(metrics.overall)}`)
-      ])
-    ]),
-    bannerWarning
-  ]));
-
-  course.categories.forEach((cat, catIdx) => {
-    const catResult = metrics.catResults.find(r => r.id === cat.id);
-    const catPctStr = (catResult && catResult.pct !== null) ? `${catResult.pct.toFixed(1)}%` : "—";
-    
-    const chevronSVG = el("button", { class: "chevron", onclick: () => { updateActive(c => { const target = c.categories.find(k => k.id === cat.id); if (target) target.open = !target.open; return c; }); }}, [
-      el("div", { style: `transform: rotate(${cat.open ? '0deg' : '-90deg'}); transition: transform 0.2s; display:flex;` }, [
-        el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }, [el("polyline", { points: "6 9 12 15 18 9" })])
-      ])
-    ]);
-
-    const nameInp = el("input", { class: "category-name-input", "data-focus-id": `cat-name-${catIdx}`, value: cat.name, oninput: (e) => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.name = e.target.value; return c; }); } });
-    const weightInp = el("input", { class: "weight-input", type: "number", "data-focus-id": `cat-weight-${catIdx}`, value: cat.weight, oninput: (e) => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.weight = e.target.value === "" ? "" : Number(e.target.value); return c; }); } });
-
-    const catHead = el("div", { class: "category-head" }, [
-      chevronSVG, nameInp, el("div", { class: "weight-input-wrap" }, [document.createTextNode("Weight: "), weightInp, document.createTextNode("%")]), el("div", { class: "cat-pct mono" }, catPctStr),
-      el("button", { class: "icon-btn", onclick: () => { updateActive(c => { c.categories = c.categories.filter(k => k.id !== cat.id); return c; }); }}, [trashSVG()])
-    ]);
-
-    let catBody = null;
-    if (cat.open) {
-      const itemsList = [];
-      if (cat.items.length === 0) {
-        itemsList.push(el("p", { class: "empty-note" }, "No assignments added yet."));
-      } else {
-        cat.items.forEach((item, itemIdx) => {
-          const lblInp = el("input", { class: "item-label-input", value: item.name, placeholder: item.isWhatIf ? "Predictive Assignment" : "Assignment name", "data-focus-id": `item-lbl-${catIdx}-${itemIdx}`, oninput: (e) => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].name = e.target.value; return c; }); } });
-          const earnInp = el("input", { class: "item-num-input", type: "number", step: "any", value: item.earned, placeholder: "Earned", "data-focus-id": `item-earn-${catIdx}-${itemIdx}`, oninput: (e) => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].earned = e.target.value === "" ? "" : e.target.value; return c; }); } });
-          const possInp = el("input", { class: "item-num-input", type: "number", step: "any", value: item.possible, placeholder: "Possible", "data-focus-id": `item-poss-${catIdx}-${itemIdx}`, oninput: (e) => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].possible = e.target.value === "" ? "" : e.target.value; return c; }); } });
-
-          itemsList.push(el("div", { class: `item-row ${item.isWhatIf ? 'what-if-row' : ''}` }, [
-            lblInp, earnInp, el("span", { class: "slash" }, "/"), possInp, 
-            el("button", { class: "icon-btn", onclick: () => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items.splice(itemIdx, 1); return c; }); }}, [trashSVG()])
-          ]));
-        });
+    async function checkAuth() {
+      const res = await fetch('/api/me');
+      if (res.ok) {
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        loadDashboard();
       }
-
-      const addItemBtn = el("button", { class: "add-item-btn", onclick: () => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items.push({ name: "", earned: "", possible: "" }); return c; }); }}, [
-        el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }, [el("path", { d: "M12 5v14M5 12h14" })]), document.createTextNode("Add assignment")
-      ]);
-
-      const addWhatIfBtn = el("button", { class: "add-whatif-btn", onclick: () => { updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items.push({ name: "", earned: "", possible: "", isWhatIf: true }); return c; }); }}, [
-        el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "#B37426", "stroke-width": "2" }, [el("path", { d: "M12 5v14M5 12h14" })]), document.createTextNode("Add 'What-If' Mock Assignment")
-      ]);
-
-      itemsList.push(el("div", { class: "add-buttons-group" }, [addItemBtn, addWhatIfBtn]));
-      catBody = el("div", { class: "category-body" }, itemsList);
     }
-    main.appendChild(el("section", { class: "category" }, [catHead, catBody]));
-  });
 
-  main.appendChild(el("button", { class: "add-category-btn", onclick: () => { updateActive(c => { c.categories.push({ id: uid(), name: "New Category", weight: 0, open: true, items: [] }); return c; }); }}, [
-    el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }, [el("path", { d: "M12 5v14M5 12h14" })]), document.createTextNode("Add Category")
-  ]));
+    async function handleAuth(type) {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const res = await fetch(`/api/${type}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (res.ok) checkAuth();
+      else alert("Authentication went wrong. Check backend setup.");
+    }
 
-  if (focusedId) {
-    const targetInput = document.querySelector(`[data-focus-id="${focusedId}"]`);
-    if (targetInput) { targetInput.focus(); if (selStart !== null && selEnd !== null && targetInput.setSelectionRange) { targetInput.setSelectionRange(selStart, selEnd); } }
-  }
-}
-document.getElementById("add-course-btn").addEventListener("click", addCourse);
-</script>
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      location.reload();
+    }
+
+    async function loadDashboard() {
+      const settingsRes = await fetch('/api/settings');
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        if (data.gradingScale) {
+          currentScale = data.gradingScale;
+          document.getElementById('scale-a').value = currentScale.A;
+          document.getElementById('scale-b').value = currentScale.B;
+          document.getElementById('scale-c').value = currentScale.C;
+          document.getElementById('scale-d').value = currentScale.D;
+        }
+      }
+      renderSections();
+    }
+
+    async function saveScale() {
+      currentScale = {
+        A: parseFloat(document.getElementById('scale-a').value),
+        B: parseFloat(document.getElementById('scale-b').value),
+        C: parseFloat(document.getElementById('scale-c').value),
+        D: parseFloat(document.getElementById('scale-d').value)
+      };
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gradingScale: currentScale })
+      });
+      calculateTargets();
+    }
+
+    function renderSections() {
+      const display = document.getElementById('sections-display');
+      display.innerHTML = '';
+      mockCourseData.forEach((cat, index) => {
+        display.innerHTML += `
+          <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
+            <strong>${cat.name} (Total Weight: ${cat.weight * 100}%)</strong><br>
+            Current Average: ${cat.currentAvg}% | Completed Weight: ${cat.weightCompleted * 100}%<br>
+            <span id="target-output-${index}" style="color: #732626; font-weight: bold;"></span>
+          </div>
+        `;
+      });
+      calculateTargets();
+    }
+
+    function calculateTargets() {
+      const targetGoal = parseFloat(document.getElementById('target-goal').value) || 90;
+      
+      mockCourseData.forEach((cat, index) => {
+        // Calculate the target average score needed specifically on remaining assignments
+        // Formula: ScoreNeeded = (TargetAllocatedForCategory - (CurrentAvg * CompletedWeight)) / RemainingWeight
+        const targetAllocated = targetGoal * cat.weight;
+        const scoreNeeded = (targetAllocated - (cat.currentAvg * cat.weightCompleted)) / cat.weightRemaining;
+        
+        const outputSpan = document.getElementById(`target-output-${index}`);
+        if(scoreNeeded <= 0) {
+          outputSpan.innerText = "Target Achieved! You can get a 0% on the remaining work and still hit your goal.";
+        } else if (scoreNeeded > 100) {
+          outputSpan.innerText = `To get your goal, you would need a ${scoreNeeded.toFixed(1)}% on remaining work (Extra credit required).`;
+        } else {
+          outputSpan.innerText = `To hit your goal, you must average a ${scoreNeeded.toFixed(1)}% on the remaining ${cat.name} assignments.`;
+        }
+      });
+    }
+
+    // Drag and drop initialization
+    const dropZone = document.getElementById('drop-zone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-active');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            const parsed = JSON.parse(evt.target.result);
+            if(Array.isArray(parsed)) {
+              mockCourseData = parsed;
+              renderSections();
+              alert("Curriculum parsed and loaded successfully!");
+            }
+          } catch(e) { alert("Invalid JSON curriculum configuration template dropped."); }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    window.onload = checkAuth;
+  </script>
 </body>
 </html>
