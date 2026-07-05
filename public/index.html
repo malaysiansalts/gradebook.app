@@ -19,12 +19,31 @@
     --slate-light: #B9C2CF;
   }
   * { box-sizing: border-box; }
+  
+  /* 1. Global App-Wide Micro-Transitions */
   body {
     margin: 0;
     background: var(--paper);
     color: var(--ink);
     font-family: 'Inter', sans-serif;
+    animation: appEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+  
+  @keyframes appEntrance {
+    from { opacity: 0; transform: scale(0.99); filter: blur(4px); }
+    to { opacity: 1; transform: scale(1); filter: blur(0); }
+  }
+
+  /* 2. Content Drop-in Animation for Cards, Rows, and Fields */
+  div, form, section, li, tr, table {
+    animation: componentSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes componentSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   .serif { font-family: 'Fraunces', serif; }
   .mono { font-family: 'IBM Plex Mono', monospace; }
   header {
@@ -53,12 +72,18 @@
   .logo-badge svg { width: 18px; height: 18px; color: var(--paper); }
   h1.title { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; flex: 1; }
   .account-area { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+  
+  /* Modern Button Hover Mechanics */
   .logout-btn {
     background: none; border: 1px solid var(--line); border-radius: 8px;
     padding: 6px 12px; font-family: inherit; font-size: 13px; color: var(--ink);
     cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .logout-btn:hover { background: var(--paper-dim); }
+  .logout-btn:hover { 
+    background: var(--paper-dim); 
+    transform: translateY(-1px);
+  }
 
   .layout {
     max-width: 1000px;
@@ -80,69 +105,94 @@
   }
   .course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
   .course-row { display: flex; align-items: center; gap: 6px; }
+  
+  /* Course Navigation List Transition */
   .course-btn {
     flex: 1; min-width: 0; text-align: left; padding: 10px 12px; border-radius: 8px;
     border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 14px;
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    color: var(--ink); transition: background-color .15s ease;
+    color: var(--ink); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .course-btn:hover { background: var(--paper-dim); }
-  .course-btn.active { background: var(--ink); color: var(--paper); }
+  .course-btn:hover { 
+    background: var(--paper-dim); 
+    transform: translateX(3px);
+  }
+  .course-btn.active { background: var(--ink); color: var(--paper); transform: translateX(3px); }
   .course-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .course-pct { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); flex-shrink: 0; }
   .course-btn.active .course-pct { color: var(--tan); }
+  
   .icon-btn {
     background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color .15s ease;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s ease;
   }
-  .icon-btn:hover { color: var(--brick); }
+  .icon-btn:hover { color: var(--brick); transform: scale(1.1); }
   .icon-btn svg { width: 15px; height: 15px; }
+  
   .add-course-btn {
     margin-top: 8px; width: 100%; display: flex; align-items: center; gap: 8px;
     background: none; border: none; cursor: pointer; color: var(--brick); font-family: inherit; font-size: 14px;
-    padding: 10px 12px; border-radius: 8px; transition: background-color .15s ease;
+    padding: 10px 12px; border-radius: 8px; transition: all 0.2s ease;
   }
-  .add-course-btn:hover { background: var(--paper-dim); }
+  .add-course-btn:hover { background: var(--paper-dim); padding-left: 16px; }
 
   .course-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
   .course-title-input {
     font-family: 'Fraunces', serif; font-size: 30px; font-weight: 600; background: transparent;
     border: none; border-bottom: 2px solid transparent; outline: none; flex: 1; min-width: 0;
-    padding: 2px 0; color: var(--ink);
+    padding: 2px 0; color: var(--ink); transition: all 0.2s ease;
   }
   .course-title-input:focus { border-bottom-color: var(--brick); }
 
   .banner {
     border-radius: 14px; background: var(--ink-dark); color: var(--paper); padding: 20px 24px;
     margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   }
   .banner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); margin-bottom: 6px; }
   .banner-grade { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; display: flex; align-items: baseline; gap: 12px; }
   .banner-letter { color: var(--tan); font-size: 24px; }
   .banner-warning { font-size: 12px; color: var(--tan); text-align: right; max-width: 160px; }
 
-  .category { border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.55); overflow: hidden; margin-bottom: 14px; }
+  .category { 
+    border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.55); 
+    overflow: hidden; margin-bottom: 14px; transition: box-shadow 0.2s ease;
+  }
+  .category:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
   .category-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--paper-dim); }
-  .chevron { background: none; border: none; cursor: pointer; color: var(--muted); display:flex; }
+  .chevron { background: none; border: none; cursor: pointer; color: var(--muted); display:flex; transition: transform 0.2s ease; }
+  .chevron:hover { transform: scale(1.15); }
   .chevron svg { width: 16px; height: 16px; }
   .category-name-input { font-weight: 500; background: transparent; border: none; outline: none; flex: 1; min-width: 0; font-family: inherit; font-size: 15px; color: var(--ink); }
   .weight-input-wrap { display: flex; align-items: center; gap: 4px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); flex-shrink: 0; }
-  .weight-input { width: 48px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--line); outline: none; font-family: inherit; font-size: 13px; color: var(--ink); }
+  .weight-input { width: 48px; text-align: right; background: transparent; border: none; border-bottom: 1px solid var(--line); outline: none; font-family: inherit; font-size: 13px; color: var(--ink); transition: border 0.2s ease; }
   .weight-input:focus { border-bottom-color: var(--brick); }
   .cat-pct { font-family: 'IBM Plex Mono', monospace; font-size: 13px; width: 60px; text-align: right; flex-shrink: 0; }
 
   .category-body { padding: 12px 16px; }
   .empty-note { font-size: 13px; color: var(--muted); font-style: italic; margin: 0 0 8px; }
   .item-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .item-label-input { flex: 1; min-width: 0; font-size: 13px; background: transparent; border: none; border-bottom: 1px solid transparent; outline: none; font-family: inherit; color: var(--ink); }
+  .item-label-input { flex: 1; min-width: 0; font-size: 13px; background: transparent; border: none; border-bottom: 1px solid transparent; outline: none; font-family: inherit; color: var(--ink); transition: border 0.2s ease; }
   .item-label-input:focus { border-bottom-color: var(--brick); }
-  .item-num-input { width: 72px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; outline: none; color: var(--ink); }
-  .item-num-input:focus { border-color: var(--brick); }
+  
+  /* Focus pop interaction for numeric entries */
+  .item-num-input { 
+    width: 72px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; 
+    background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; 
+    outline: none; color: var(--ink); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+  }
+  .item-num-input:focus { 
+    border-color: var(--brick); 
+    transform: scale(1.03);
+    box-shadow: 0 2px 8px rgba(139, 58, 58, 0.1);
+  }
   .slash { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--muted); }
 
-  .add-item-btn, .add-category-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--brick); padding: 4px 0; margin-top: 4px; }
+  .add-item-btn, .add-category-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--brick); padding: 4px 0; margin-top: 4px; transition: all 0.2s ease; }
+  .add-item-btn:hover { padding-left: 4px; opacity: 0.8; }
+  
   .add-category-btn { border: 1px solid var(--line); border-radius: 10px; color: var(--ink); padding: 10px 16px; font-size: 14px; background: rgba(255,255,255,0.4); }
-  .add-category-btn:hover { background: var(--paper-dim); }
+  .add-category-btn:hover { background: var(--paper-dim); transform: translateY(-1px); }
   .add-item-btn svg, .add-category-btn svg { width: 14px; height: 14px; }
 
   input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { opacity: 0.35; }
@@ -154,21 +204,32 @@
   .auth-card {
     width: 100%; max-width: 380px; background: rgba(255,255,255,0.6); border: 1px solid var(--line);
     border-radius: 16px; padding: 32px;
+    box-shadow: 0 8px 32px rgba(46, 59, 78, 0.05);
   }
   .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
   .auth-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 0 0 4px; }
   .auth-sub { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
   .field-label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  
   .field-input {
     width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
     font-family: inherit; font-size: 14px; background: var(--paper); outline: none; margin-bottom: 14px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .field-input:focus { border-color: var(--brick); }
+  .field-input:focus { 
+    border-color: var(--brick); 
+    transform: scale(1.01);
+    box-shadow: 0 0 0 4px rgba(139, 58, 58, 0.15);
+  }
+  
   .auth-submit {
     width: 100%; padding: 11px; border: none; border-radius: 8px; background: var(--brick);
     color: var(--paper); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s ease;
   }
-  .auth-submit:hover { opacity: 0.92; }
+  .auth-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139, 58, 58, 0.25); }
+  .auth-submit:active { transform: translateY(0) scale(0.98); }
+  
   .auth-switch { margin-top: 16px; font-size: 13px; color: var(--muted); text-align: center; }
   .auth-switch button { background: none; border: none; color: var(--brick); cursor: pointer; font-family: inherit; font-size: 13px; padding: 0; }
   .auth-error { color: var(--brick); font-size: 13px; margin: -6px 0 14px; }
@@ -177,7 +238,6 @@
 </head>
 <body>
 
-<!-- ===== Auth screen ===== -->
 <div id="auth-screen" class="auth-wrap">
   <div class="auth-card">
     <div class="auth-logo">
@@ -206,7 +266,6 @@
   </div>
 </div>
 
-<!-- ===== App screen ===== -->
 <div id="app-screen" class="hidden">
   <header>
     <div class="header-inner">
