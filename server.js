@@ -17,7 +17,6 @@ app.use(session({
   cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 } // 1 week
 }));
 
-// Helper to read/write persistent database file
 function readDB() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify({ users: {} }, null, 2));
@@ -30,70 +29,70 @@ function writeDB(data) {
 }
 
 // Auth Routes
-app.post('/api/register', (expressRes, next) => {
+app.post('/api/register', (req, res, next) => {
   try {
-    const { email, password } = expressRes.req.body;
-    if (!email || !password) return expressRes.status(400).json({ error: "Missing email or password" });
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
     
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
     
     if (db.users[normalizedEmail]) {
-      return expressRes.status(400).json({ error: "Account already exists" });
+      return res.status(400).json({ error: "Account already exists" });
     }
     
     db.users[normalizedEmail] = { password, courses: [] };
     writeDB(db);
     
-    expressRes.req.session.userEmail = normalizedEmail;
-    expressRes.json({ email: normalizedEmail });
+    req.session.userEmail = normalizedEmail;
+    res.json({ email: normalizedEmail });
   } catch (err) { next(err); }
 });
 
-app.post('/api/login', (expressRes, next) => {
+app.post('/api/login', (req, res, next) => {
   try {
-    const { email, password } = expressRes.req.body;
+    const { email, password } = req.body;
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
     
     const user = db.users[normalizedEmail];
     if (!user || user.password !== password) {
-      return expressRes.status(401).json({ error: "Invalid email or password" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
     
-    expressRes.req.session.userEmail = normalizedEmail;
-    expressRes.json({ email: normalizedEmail });
+    req.session.userEmail = normalizedEmail;
+    res.json({ email: normalizedEmail });
   } catch (err) { next(err); }
 });
 
-app.post('/api/logout', (expressRes) => {
-  expressRes.req.session.destroy();
-  expressRes.json({ success: true });
+app.post('/api/logout', (req, res) => {
+  req.session.destroy();
+  res.json({ success: true });
 });
 
-app.get('/api/me', (expressRes) => {
-  if (!expressRes.req.session.userEmail) return expressRes.status(401).json({ error: "Not logged in" });
-  expressRes.json({ email: expressRes.req.session.userEmail });
+app.get('/api/me', (req, res) => {
+  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  res.json({ email: req.session.userEmail });
 });
 
 // Course Data Routes
-app.get('/api/courses', (expressRes) => {
-  if (!expressRes.req.session.userEmail) return expressRes.status(401).json({ error: "Not logged in" });
+app.get('/api/courses', (req, res) => {
+  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
-  const user = db.users[expressRes.req.session.userEmail];
-  expressRes.json({ courses: user.courses || [] });
+  const user = db.users[req.session.userEmail];
+  res.json({ courses: user.courses || [] });
 });
 
-app.put('/api/courses', (expressRes) => {
-  if (!expressRes.req.session.userEmail) return expressRes.status(401).json({ error: "Not logged in" });
-  const { courses } = expressRes.req.body;
+app.put('/api/courses', (req, res) => {
+  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  const { courses } = req.body;
   const db = readDB();
   
-  if (db.users[expressRes.req.session.userEmail]) {
-    db.users[expressRes.req.session.userEmail].courses = courses;
+  if (db.users[req.session.userEmail]) {
+    db.users[req.session.userEmail].courses = courses;
     writeDB(db);
   }
-  expressRes.json({ success: true });
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
