@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradebook Application</title>
+  <title>Multi-Class Gradebook</title>
   <style>
     :root {
       --bg-cream: #faf8f5;
@@ -22,33 +22,14 @@
       padding: 0;
     }
 
-    .auth-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .auth-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 4px 20px rgba(115, 38, 38, 0.04);
-    }
-
-    .dashboard-wrapper {
-      max-width: 1100px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
+    .auth-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .auth-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; max-width: 420px; width: 100%; box-shadow: 0 4px 20px rgba(115, 38, 38, 0.04); }
+    .dashboard-wrapper { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
 
     h1, h2, h3 { color: var(--burgundy); margin-top: 0; }
     label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
     
-    input {
+    input, select {
       width: 100%;
       padding: 10px 14px;
       margin-bottom: 15px;
@@ -56,57 +37,33 @@
       border-radius: 8px;
       box-sizing: border-box;
       background-color: #fdfcfb;
+      font-size: 14px;
     }
-    input:focus { outline: none; border-color: var(--burgundy); }
+    input:focus, select:focus { outline: none; border-color: var(--burgundy); }
 
-    button {
-      background: var(--burgundy);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
+    button { background: var(--burgundy); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
     button:hover { background: var(--burgundy-hover); }
-
     .secondary-btn { background: none; color: #666; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; }
 
     .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
     @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
 
     .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-    
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .scale-matrix input { padding: 6px; text-align: center; margin-bottom: 6px; }
 
-    #drop-zone { border: 2px dashed var(--burgundy); padding: 25px; text-align: center; border-radius: 12px; background: #fdfbfa; margin-bottom: 30px; }
-    #drop-zone.drag-active { background: #f4ebe8; }
-
-    /* The original row input system grid */
+    /* Clean Input Rows */
     .course-row-item {
       display: grid;
-      grid-template-columns: 2fr repeat(4, 1fr) 40px;
-      gap: 10px;
+      grid-template-columns: 3fr 1fr 1fr 40px;
+      gap: 12px;
       align-items: center;
       margin-bottom: 12px;
     }
-    .course-row-item input { margin-bottom: 0; padding: 8px; }
+    .course-row-item input { margin-bottom: 0; padding: 10px; }
 
-    .target-feedback-line {
-      font-size: 13px;
-      color: var(--burgundy);
-      font-weight: 600;
-      grid-column: 1 / -1;
-      padding-bottom: 12px;
-      border-bottom: 1px dashed var(--border-color);
-      margin-top: 4px;
-    }
-
-    .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; width: 100%; padding: 0; }
+    .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; padding: 0; }
     .remove-btn:hover { color: var(--burgundy); }
-    
     .hidden { display: none !important; }
   </style>
 </head>
@@ -114,71 +71,64 @@
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
-      <h2 style="margin-bottom: 20px;" id="auth-title">Create Account</h2>
-      <div id="auth-error" style="color: var(--burgundy); font-weight: bold; margin-bottom: 15px;" class="hidden">Something went wrong. Try again!</div>
-      
+      <h2 id="auth-title">Create Account</h2>
+      <div id="auth-error" style="color: var(--burgundy); font-weight: bold; margin-bottom: 15px;" class="hidden">Authentication error. Try again.</div>
       <label>Email</label>
-      <input type="email" id="auth-email" placeholder="name@domain.com">
-      
+      <input type="email" id="auth-email" placeholder="student@domain.com">
       <label>Password</label>
       <input type="password" id="auth-password" placeholder="••••••••••••">
-      
       <button style="width:100%;" onclick="executeAuth()">Submit</button>
-      <button class="secondary-btn" onclick="toggleAuth()">Toggle Log In / Sign Up</button>
+      <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
-        <h1 style="margin: 0;">Gradebook System</h1>
+        <h1 style="margin: 0;">Multi-Class Gradebook</h1>
         <p id="current-user-tag" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
       </div>
       <button onclick="logOutUser()" style="background: #555;">Log Out</button>
     </div>
 
-    <div id="drop-zone">
-      <p style="font-weight: bold; margin: 0; color: var(--burgundy);">🗂️ Drop curriculum file here to automatically populate custom categories</p>
+    <div class="card" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <label>Active Class Subject</label>
+        <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0;"></select>
+      </div>
+      <button onclick="createNewClassChannel()" style="background: #555; white-space: nowrap;">+ Create New Class</button>
     </div>
 
     <div class="grid-container">
       
       <div>
         <div class="card">
-          <h2>Course Categories Breakdown</h2>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Type categories manually. Press save below to remember layout changes permanently.</p>
+          <h2 id="active-class-title">Class Breakdown</h2>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Enter your category names, their percentage weights, and your grade averages.</p>
 
           <div class="course-row-item" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
             <div>Category / Assignment Name</div>
-            <div>Total Weight %</div>
-            <div>Current Avg %</div>
-            <div>Comp. Wt %</div>
-            <div>Rem. Wt %</div>
-            <div>Clear</div>
+            <div>Weight %</div>
+            <div>Your Avg %</div>
+            <div style="text-align: center;">Clear</div>
           </div>
 
           <div id="table-rows-hook">
             </div>
 
           <div style="display: flex; gap: 12px; margin-top: 20px;">
-            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Custom Category</button>
-            <button onclick="saveRowsToServer()">Save Changes Securely</button>
+            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Row</button>
+            <button onclick="saveRowsToServer()">Save Class Changes</button>
           </div>
         </div>
       </div>
 
       <div>
         <div class="card" style="text-align: center;">
-          <h3>Calculated Running Grade</h3>
+          <h3>Class Average</h3>
           <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
           <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 6px;">Weighted against active completed segments.</p>
-        </div>
-
-        <div class="card">
-          <h3>Target Goal Settings</h3>
-          <label>What target grade do you want to secure? (%)</label>
-          <input type="number" id="overall-target-goal" value="90" oninput="runCalculations()">
+          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated running total weight.</p>
         </div>
 
         <div class="card">
@@ -197,7 +147,7 @@
             <div><label>D</label><input type="number" id="sc-D" value="63"></div>
             <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; margin-top: 10px; padding: 10px 0;">Apply Floor Scale</button>
+          <button onclick="saveScaleToServer()" style="width:100%; margin-top: 10px; padding: 10px 0;">Update Threshold Floors</button>
         </div>
       </div>
 
@@ -207,7 +157,8 @@
   <script>
     let currentAuthMode = 'register';
     let globalScale = {};
-    let globalCourses = [];
+    let globalClasses = {};
+    let activeClassName = "";
 
     function toggleAuth() {
       const title = document.getElementById('auth-title');
@@ -246,29 +197,68 @@
       if(res.ok) {
         const payload = await res.json();
         globalScale = payload.gradingScale || {};
-        globalCourses = payload.courses || [];
+        globalClasses = payload.classes || {};
         
         Object.keys(globalScale).forEach(key => {
           const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
         });
-        buildRowsInDOM();
+
+        populateClassDropdown();
       }
     }
 
+    function populateClassDropdown() {
+      const dropdown = document.getElementById('class-dropdown');
+      dropdown.innerHTML = '';
+      const keys = Object.keys(globalClasses);
+      
+      if(keys.length === 0) {
+        globalClasses["General Class"] = [];
+        keys.push("General Class");
+      }
+      
+      keys.forEach(key => {
+        dropdown.innerHTML += `<option value="${key}">${key}</option>`;
+      });
+
+      if (!activeClassName || !globalClasses[activeClassName]) {
+        activeClassName = keys[0];
+      }
+      dropdown.value = activeClassName;
+      buildRowsInDOM();
+    }
+
+    function createNewClassChannel() {
+      const name = prompt("Enter new class subject name (e.g., Chemistry):");
+      if(name && name.trim() !== "") {
+        const cleanName = name.trim();
+        if(!globalClasses[cleanName]) {
+          globalClasses[cleanName] = [{ name: "Exams", weight: 50, currentAvg: 100 }];
+        }
+        activeClassName = cleanName;
+        populateClassDropdown();
+      }
+    }
+
+    function switchActiveClass() {
+      activeClassName = document.getElementById('class-dropdown').value;
+      buildRowsInDOM();
+    }
+
     function buildRowsInDOM() {
+      document.getElementById('active-class-title').innerText = `${activeClassName} Breakdown`;
       const hook = document.getElementById('table-rows-hook');
       hook.innerHTML = '';
       
-      globalCourses.forEach((course, index) => {
+      const currentClassRows = globalClasses[activeClassName] || [];
+      
+      currentClassRows.forEach((course, index) => {
         hook.innerHTML += `
           <div class="course-row-item" data-id="${index}">
             <input type="text" value="${course.name}" class="inp-name" oninput="readRowsFromDOM()">
-            <input type="number" value="${course.weight * 100 || course.weight}" class="inp-weight" oninput="readRowsFromDOM()">
+            <input type="number" value="${course.weight}" class="inp-weight" oninput="readRowsFromDOM()">
             <input type="number" value="${course.currentAvg}" class="inp-avg" oninput="readRowsFromDOM()">
-            <input type="number" value="${course.weightCompleted * 100 || course.weightCompleted}" class="inp-wcomp" oninput="readRowsFromDOM()">
-            <input type="number" value="${course.weightRemaining * 100 || course.weightRemaining}" class="inp-wrem" oninput="readRowsFromDOM()">
             <button class="remove-btn" onclick="removeRowItem(${index})">✕</button>
-            <div class="target-feedback-line" id="target-feedback-${index}">Calculating details...</div>
           </div>
         `;
       });
@@ -276,25 +266,25 @@
     }
 
     function appendBlankCategoryRow() {
-      globalCourses.push({ name: "New Category", weight: 10, currentAvg: 100, weightCompleted: 10, weightRemaining: 0 });
+      if(!globalClasses[activeClassName]) globalClasses[activeClassName] = [];
+      globalClasses[activeClassName].push({ name: "New Category", weight: 10, currentAvg: 100 });
       buildRowsInDOM();
     }
 
     function removeRowItem(idx) {
-      globalCourses.splice(idx, 1);
+      globalClasses[activeClassName].splice(idx, 1);
       buildRowsInDOM();
     }
 
     function readRowsFromDOM() {
       const DOMrows = document.querySelectorAll('#table-rows-hook .course-row-item');
-      globalCourses = [];
+      globalClasses[activeClassName] = [];
+      
       DOMrows.forEach(row => {
-        globalCourses.push({
+        globalClasses[activeClassName].push({
           name: row.querySelector('.inp-name').value,
-          weight: parseFloat(row.querySelector('.inp-weight').value) / 100 || 0,
-          currentAvg: parseFloat(row.querySelector('.inp-avg').value) || 0,
-          weightCompleted: parseFloat(row.querySelector('.inp-wcomp').value) / 100 || 0,
-          weightRemaining: parseFloat(row.querySelector('.inp-wrem').value) / 100 || 0
+          weight: parseFloat(row.querySelector('.inp-weight').value) || 0,
+          currentAvg: parseFloat(row.querySelector('.inp-avg').value) || 0
         });
       });
       runCalculations();
@@ -305,9 +295,9 @@
       await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courses: globalCourses })
+        body: JSON.stringify({ classes: globalClasses })
       });
-      alert("Layout synced successfully!");
+      alert("All classes saved successfully!");
     }
 
     async function saveScaleToServer() {
@@ -323,36 +313,20 @@
     }
 
     function runCalculations() {
-      const targetGoal = parseFloat(document.getElementById('overall-target-goal').value) || 90;
-      let totalCompletedWeight = 0;
-      let earnedPointsSum = 0;
+      const currentClassRows = globalClasses[activeClassName] || [];
+      let totalWeightEntered = 0;
+      let weightedPointsSum = 0;
 
-      globalCourses.forEach((course, index) => {
-        totalCompletedWeight += course.weightCompleted;
-        earnedPointsSum += (course.currentAvg * course.weightCompleted);
-
-        const out = document.getElementById(`target-feedback-${index}`);
-        if (!out) return;
-
-        if (course.weightRemaining <= 0) {
-          out.innerText = `Category complete. Segment points contribution: ${(course.currentAvg * course.weightCompleted * 100).toFixed(1)}%`;
-          return;
-        }
-
-        const targetPoints = (targetGoal / 100) * course.weight;
-        const scoreNeeded = ((targetPoints - ((course.currentAvg / 100) * course.weightCompleted)) / course.weightRemaining) * 100;
-
-        if (scoreNeeded <= 0) {
-          out.innerText = `🎯 Target reached! You can score a 0% on the rest of this work and hit your goal.`;
-        } else if (scoreNeeded > 100) {
-          out.innerText = `⚠️ Extra credit needed: You need a ${scoreNeeded.toFixed(1)}% on remaining assignments here to reach your goal.`;
-        } else {
-          out.innerText = `📈 You need to average a ${scoreNeeded.toFixed(1)}% on your remaining ${course.name} assignments.`;
-        }
+      currentClassRows.forEach(course => {
+        totalWeightEntered += course.weight;
+        weightedPointsSum += (course.currentAvg * (course.weight / 100));
       });
 
       let overallAverage = 0;
-      if (totalCompletedWeight > 0) overallAverage = (earnedPointsSum / totalCompletedWeight);
+      if (totalWeightEntered > 0) {
+        // Adjust average to reflect relative weight scale
+        overallAverage = (weightedPointsSum / (totalWeightEntered / 100));
+      }
       
       document.getElementById('score-pct-badge').innerText = `${overallAverage.toFixed(1)}%`;
       
@@ -366,29 +340,6 @@
       }
       document.getElementById('score-letter-badge').innerText = letter;
     }
-
-    const dropZone = document.getElementById('drop-zone');
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
-    dropZone.addEventListener('drop', async (e) => {
-      e.preventDefault(); dropZone.classList.remove('drag-active');
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = async function(evt) {
-          try {
-            const parsed = JSON.parse(evt.target.result);
-            if(Array.isArray(parsed)) {
-              globalCourses = parsed;
-              await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ courses: globalCourses }) });
-              buildRowsInDOM();
-              alert("Syllabus configuration applied successfully!");
-            }
-          } catch(e) { alert("Invalid structure file."); }
-        };
-        reader.readAsText(file);
-      }
-    });
 
     window.onload = checkSession;
   </script>
