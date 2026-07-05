@@ -14,7 +14,7 @@ app.use(session({
   secret: 'gradebook-secret-key-12345',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 } // 1 week session
+  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
 }));
 
 function readDB() {
@@ -28,7 +28,6 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Auth Processing
 app.post('/api/register', (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -68,7 +67,6 @@ app.post('/api/login', (req, res, next) => {
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" }); res.json({ email: req.session.userEmail }); });
 
-// Data endpoints
 app.get('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
