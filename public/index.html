@@ -89,14 +89,14 @@
 
     @keyframes toastInOut {
       0% { transform: translate(-50%, -50px); opacity: 0; }
-      15 { transform: translate(-50%, 24px); opacity: 1; }
+      15% { transform: translate(-50%, 24px); opacity: 1; }
       85% { transform: translate(-50%, 24px); opacity: 1; }
       100% { transform: translate(-50%, -50px); opacity: 0; }
     }
 
     @keyframes cardPulse {
       0% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--panel-border); }
-      50% { box-shadow: 0 4px 25px rgba(59,130,246,0.15), 0 0 8px 1px rgba(59,130,246,0.2); }
+      50% { box-shadow: 0 4px 25px rgba(59, 130, 246, 0.15), 0 0 8px 1px rgba(59, 130, 246, 0.2); }
       100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--panel-border); }
     }
 
@@ -398,7 +398,7 @@
     }
 
     /* ----------------------------------------------------
-       ANTI-JUMP SYSTEM
+       ANTI-JUMP LAYOUT SYSTEM
        ---------------------------------------------------- */
     .dashboard-wrapper {
       max-width: 1280px;
@@ -964,9 +964,10 @@
       const filterOpts = [{ label: "All Categories", value: "ALL" }];
       categories.forEach(c => { if(c.name) filterOpts.push({ label: c.name, value: c.name }); });
       
+      // FIX: Callback now updates active assignment elements only, preventing table 1 flashing loops
       setupCustomDropdown('log-filter-wrapper', activeFilterValue === "ALL" ? "All Categories" : activeFilterValue, filterOpts, (val) => {
         activeFilterValue = val;
-        generateInteractiveWorkspaceElements();
+        generateAssignmentTableUI();
       });
 
       const calcOpts = categories.map(c => ({ label: c.name, value: c.name }));
@@ -980,10 +981,14 @@
       }
     }
 
-    function generateInteractiveWorkspaceElements() {
+    /* ----------------------------------------------------
+       ISOLATED TABULAR DOM RENDERING ENGINE
+       ---------------------------------------------------- */
+    function generateCategoryTableUI() {
       const currentClassData = globalClasses[activeClassName] || { categories: [], assignments: [] };
-      
       const catHook = document.getElementById('category-rows-hook');
+      if(!catHook) return;
+
       catHook.innerHTML = '';
       currentClassData.categories.forEach((cat, index) => {
         const row = document.createElement('div');
@@ -997,8 +1002,13 @@
         `;
         catHook.appendChild(row);
       });
+    }
 
+    function generateAssignmentTableUI() {
+      const currentClassData = globalClasses[activeClassName] || { categories: [], assignments: [] };
       const logHook = document.getElementById('assignment-rows-hook');
+      if(!logHook) return;
+
       logHook.innerHTML = '';
       currentClassData.assignments.forEach((asm, index) => {
         if (activeFilterValue !== "ALL" && asm.category !== activeFilterValue) return;
@@ -1019,17 +1029,18 @@
       calculateCurrentRunningGrades();
     }
 
+    function generateInteractiveWorkspaceElements() {
+      generateCategoryTableUI();
+      generateAssignmentTableUI();
+    }
+
     /* ----------------------------------------------------
-       FIX: DIRECT OBJECT DATA MODIFICATION PIPELINES
-       These functions update data structures silently. They do not trigger 
-       re-renders while you are working within an active box.
+       OBJECT STATE MODIFICATION CHANNELS
        ---------------------------------------------------- */
     function updateCategoryData(index, field, value) {
       if(!globalClasses[activeClassName]) return;
       if(field === 'weight') value = parseFloat(value) || 0;
       globalClasses[activeClassName].categories[index][field] = value;
-      
-      // Calculate final score updates natively without breaking cursor positions
       calculateCurrentRunningGrades();
     }
 
@@ -1037,8 +1048,6 @@
       if(!globalClasses[activeClassName]) return;
       if(field === 'score' || field === 'total') value = parseFloat(value) || 0;
       globalClasses[activeClassName].assignments[index][field] = value;
-      
-      // Calculate final score updates natively without breaking cursor positions
       calculateCurrentRunningGrades();
     }
 
@@ -1046,27 +1055,27 @@
       if(!globalClasses[activeClassName]) return;
       globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 });
       rebuildFilteringSelectors();
-      generateInteractiveWorkspaceElements();
+      generateCategoryTableUI();
     }
 
     function removeCategoryRecord(index) {
       if(!globalClasses[activeClassName]) return;
       globalClasses[activeClassName].categories.splice(index, 1);
       rebuildFilteringSelectors();
-      generateInteractiveWorkspaceElements();
+      generateCategoryTableUI();
     }
 
     function appendBlankAssignmentRow() {
       if(!globalClasses[activeClassName]) return;
       const catName = activeFilterValue === "ALL" ? (globalClasses[activeClassName].categories[0]?.name || "General") : activeFilterValue;
       globalClasses[activeClassName].assignments.push({ name: "New Assignment", category: catName, score: 100, total: 100 });
-      generateInteractiveWorkspaceElements();
+      generateAssignmentTableUI();
     }
 
     function removeAssignmentRecord(index) {
       if(!globalClasses[activeClassName]) return;
       globalClasses[activeClassName].assignments.splice(index, 1);
-      generateInteractiveWorkspaceElements();
+      generateAssignmentTableUI();
     }
 
     function createNewClassChannel() {
