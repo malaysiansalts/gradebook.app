@@ -489,7 +489,7 @@
       transition: var(--transition-smooth);
     }
 
-    /* FIX: Trigger hover color shifts only when mouse is directly touching the icon element */
+    /* Trigger hover color shifts only when mouse is directly touching the icon element */
     .toggle-icon:hover {
       color: var(--text-primary) !important;
       background: rgba(255,255,255,0.12) !important;
@@ -844,7 +844,6 @@
     }
 
     function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
-      const wrapper = document.getElementById('wrapperId');
       const targetWrapper = document.getElementById(wrapperId);
       if(!targetWrapper) return;
       const label = targetWrapper.querySelector('.vibe-dropdown-select');
@@ -1093,13 +1092,23 @@
       rebuildCourseProfileDropdownSelection();
     }
 
+    // FIX: Optimized rename routine to dynamically change data mappings and labels without wiping/blinking table rows
     function renameActiveSubject() {
       const name = document.getElementById('rename-class-input').value.trim();
       if(!name || name === activeClassName) return;
+      
       globalClasses[name] = globalClasses[activeClassName];
       delete globalClasses[activeClassName];
       activeClassName = name;
-      rebuildCourseProfileDropdownSelection();
+      
+      const keys = Object.keys(globalClasses);
+      const optList = keys.map(k => ({ label: k, value: k }));
+      setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
+        activeClassName = val;
+        document.getElementById('rename-class-input').value = val;
+        rebuildFilteringSelectors();
+        generateInteractiveWorkspaceElements();
+      });
     }
 
     function deleteActiveCourseChannel() {
