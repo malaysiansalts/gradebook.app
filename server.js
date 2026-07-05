@@ -40,6 +40,11 @@ function writeDB(data) {
   }
 }
 
+// Google Search Console Verification Route
+app.get('/googled65c8d58b8735815.html', (req, res) => {
+  res.send('google-site-verification: googled65c8d58b8735815.html');
+});
+
 app.post('/api/register', (req, res) => {
   try {
     const { email, password } = req.body;
