@@ -43,9 +43,18 @@ app.post('/api/register', (req, res, next) => {
     
     db.users[normalizedEmail] = { 
       password, 
-      courses: [],
+      courses: [
+        { name: "Homework", weight: 0.20, currentAvg: 90, weightCompleted: 0.15, weightRemaining: 0.05 },
+        { name: "Exams", weight: 0.50, currentAvg: 85, weightCompleted: 0.25, weightRemaining: 0.25 },
+        { name: "Quizzes", weight: 0.20, currentAvg: 88, weightCompleted: 0.10, weightRemaining: 0.10 },
+        { name: "Participation", weight: 0.10, currentAvg: 100, weightCompleted: 0.10, weightRemaining: 0.00 }
+      ],
       gradingScale: {
-        "A": 93, "B": 83, "C": 73, "D": 63
+        "Aplus": 97, "A": 93, "Aminus": 90,
+        "Bplus": 87, "B": 83, "Bminus": 80,
+        "Cplus": 77, "C": 73, "Cminus": 70,
+        "Dplus": 67, "D": 63, "Dminus": 60,
+        "F": 0
       }
     };
     writeDB(db);
@@ -81,37 +90,21 @@ app.get('/api/me', (req, res) => {
   res.json({ email: req.session.userEmail });
 });
 
-// Settings / Custom Grading Scale
-app.get('/api/settings', (req, res) => {
+// User Configurations & Courses API
+app.get('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
-  res.json({ gradingScale: db.users[req.session.userEmail].gradingScale });
+  const user = db.users[req.session.userEmail];
+  res.json({ courses: user.courses || [], gradingScale: user.gradingScale });
 });
 
-app.put('/api/settings', (req, res) => {
+app.put('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
-  const { gradingScale } = req.body;
+  const { courses, gradingScale } = req.body;
   const db = readDB();
   if (db.users[req.session.userEmail]) {
-    db.users[req.session.userEmail].gradingScale = gradingScale;
-    writeDB(db);
-  }
-  res.json({ success: true });
-});
-
-// Course Data Routes
-app.get('/api/courses', (req, res) => {
-  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
-  const db = readDB();
-  res.json({ courses: db.users[req.session.userEmail].courses || [] });
-});
-
-app.put('/api/courses', (req, res) => {
-  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
-  const { courses } = req.body;
-  const db = readDB();
-  if (db.users[req.session.userEmail]) {
-    db.users[req.session.userEmail].courses = courses;
+    if (courses) db.users[req.session.userEmail].courses = courses;
+    if (gradingScale) db.users[req.session.userEmail].gradingScale = gradingScale;
     writeDB(db);
   }
   res.json({ success: true });
