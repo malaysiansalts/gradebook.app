@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Gradebook Portal - Dark Mode</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Premium Gradebook Portal - Local Dark Mode</title>
   <style>
     :root {
       --bg-space: #090d16;
@@ -55,40 +54,6 @@
     .auth-header h2 { font-size: 26px; font-weight: 700; color: var(--brand-primary); margin: 0; }
     .auth-header p { margin: 6px 0 0 0; color: var(--text-muted); font-size: 14px; }
 
-    .social-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
-      background: #1e293b;
-      border: 1px solid var(--border-soft);
-      color: #ffffff;
-      padding: 12px 16px;
-      border-radius: var(--radius-md);
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      margin-bottom: 12px;
-      transition: all 0.2s ease-in-out;
-    }
-    .social-btn:hover { background: #334155; transform: translateY(-1px); }
-    .social-btn img { width: 18px; height: 18px; }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin: 20px 0;
-    }
-    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-soft); }
-    .divider:not(:empty)::before { margin-right: 1em; }
-    .divider:not(:empty)::after { margin-left: 1em; }
-
     .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 24px; animation: fadeInUp 0.5s ease-out; }
     .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
     
@@ -118,6 +83,8 @@
       transition: all 0.2s ease;
     }
     button:hover { background: var(--brand-accent-hover); transform: translateY(-1px); }
+    .secondary-btn { background: none; color: var(--text-muted); border: 1px solid var(--border-soft); width: 100%; margin-top: 10px; }
+    .secondary-btn:hover { background: #1e293b; color: #ffffff; }
 
     .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
@@ -136,28 +103,21 @@
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
       <div class="auth-header">
-        <h2 id="auth-title">Sign In Portal</h2>
-        <p>Access Cloud-Synced Grade Analytics</p>
+        <h2 id="auth-title">Create Account</h2>
+        <p>Access Local Grade Analytics Terminal</p>
       </div>
 
-      <button class="social-btn" onclick="loginWithOAuth('google')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
-        Continue with Google
-      </button>
-      <button class="social-btn" onclick="loginWithOAuth('apple')">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" style="filter: invert(1);">
-        Continue with Apple
-      </button>
+      <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px;" class="hidden">Authentication processing error. Check parameters.</div>
 
-      <div class="divider">or credentials</div>
-
-      <form onsubmit="event.preventDefault(); handleEmailAuth();">
+      <form onsubmit="event.preventDefault(); executeAuth();">
         <label>Email Address</label>
         <input type="email" id="auth-email" placeholder="you@academy.com" required>
         <label>Password</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%; margin-top: 8px;">Login / Sign Up</button>
+        <button type="submit" style="width:100%; margin-top: 8px;">Authenticate</button>
       </form>
+      
+      <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
     </div>
   </div>
 
@@ -165,9 +125,9 @@
     <div class="top-nav">
       <div>
         <h1 style="margin:0; font-size: 28px;">Workspace Matrix</h1>
-        <p id="user-tag" style="color: var(--text-muted); font-size:14px; margin:4px 0 0 0;"></p>
+        <p id="current-user-tag" style="color: var(--text-muted); font-size:14px; margin:4px 0 0 0;"></p>
       </div>
-      <button onclick="handleLogout()" style="background: #1e293b; border: 1px solid var(--border-soft);">Disconnect Session</button>
+      <button onclick="logOutUser()" style="background: #1e293b; border: 1px solid var(--border-soft);">Disconnect Session</button>
     </div>
 
     <div class="card" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
@@ -182,7 +142,8 @@
           <button onclick="renameCurrentSubject()" style="background: #334155;">Rename</button>
         </div>
       </div>
-      <div>
+      <div style="display: flex; gap: 8px; align-items: flex-end;">
+        <button onclick="deleteCurrentClassChannel()" style="background: #ef4444; white-space: nowrap;">Delete Class</button>
         <input type="text" id="new-class-input" placeholder="New Course Code" style="width:160px; margin-bottom:0;">
         <button onclick="createNewClassChannel()">+ Add Class</button>
       </div>
@@ -251,56 +212,54 @@
   </div>
 
   <script>
-    // Initialize standard clients
-    const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_URL.supabase.co"; 
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_PUBLIC_KEY";
-    const supabase = netlify = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    let globalScale = { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80 };
+    let currentAuthMode = 'register';
+    let globalScale = {};
     let globalClasses = {};
     let activeClassName = "";
 
-    async function checkAuthSession() {
-      if(!supabase) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if(session) {
-        document.getElementById('user-tag').innerText = `Active Profile: ${session.user.email}`;
+    function toggleAuth() {
+      const title = document.getElementById('auth-title');
+      currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
+      title.innerText = (currentAuthMode === 'login') ? 'Log In' : 'Create Account';
+    }
+
+    async function checkSession() {
+      const res = await fetch('/api/me');
+      if(res.ok) {
+        const data = await res.json();
+        document.getElementById('current-user-tag').innerText = `Active Session identity: ${data.email}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
-        await loadUserDataPayload(session.user.id);
+        await loadBackendData();
       }
     }
 
-    async function loginWithOAuth(providerName) {
-      if(!supabase) { alert("Please complete Supabase configurations initializing keys."); return; }
-      await supabase.auth.signInWithOAuth({
-        provider: providerName,
-        options: { redirectTo: window.location.origin }
-      });
-    }
-
-    async function handleEmailAuth() {
+    async function executeAuth() {
+      document.getElementById('auth-error').classList.add('hidden');
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
-      // Tries signing up; if exists, logs in automatically
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error && error.message.includes("already registered")) {
-        await supabase.auth.signInWithPassword({ email, password });
-      }
-      window.location.reload();
+      const res = await fetch(`/api/${currentAuthMode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if(res.ok) window.location.reload();
+      else document.getElementById('auth-error').classList.remove('hidden');
     }
 
-    async function handleLogout() { await supabase.auth.signOut(); window.location.reload(); }
+    async function logOutUser() { await fetch('/api/logout', { method: 'POST' }); window.location.reload(); }
 
-    // Unified client-side storage management mappings
-    async function loadUserDataPayload(uid) {
-      const savedData = localStorage.getItem(`gradebook_${uid}`);
-      if(savedData) {
-        const payload = JSON.parse(savedData);
+    async function loadBackendData() {
+      const res = await fetch('/api/userdata');
+      if(res.ok) {
+        const payload = await res.json();
+        globalScale = payload.gradingScale || {};
         globalClasses = payload.classes || {};
-        globalScale = payload.gradingScale || globalScale;
+        Object.keys(globalScale).forEach(key => {
+          const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
+        });
+        populateClassDropdown();
       }
-      populateClassDropdown();
     }
 
     function populateClassDropdown() {
@@ -308,13 +267,30 @@
       dropdown.innerHTML = '';
       const keys = Object.keys(globalClasses);
       if(keys.length === 0) {
-        globalClasses["General Semester Class"] = { categories: [{name:"Exams", weight: 60}], assignments: [] };
-        keys.push("General Semester Class");
+        globalClasses["General Class"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
+        keys.push("General Class");
       }
-      keys.forEach(k => dropdown.innerHTML += `<option value="${k}">${k}</option>`);
-      activeClassName = keys[0];
+      keys.forEach(key => dropdown.innerHTML += `<option value="${key}">${key}</option>`);
+      if (!activeClassName || !globalClasses[activeClassName]) activeClassName = keys[0];
       dropdown.value = activeClassName;
+      document.getElementById('rename-class-input').value = activeClassName;
+      populateCategoryFilters();
       buildUiElementsFromMemory();
+    }
+
+    function populateCategoryFilters() {
+      const currentClass = globalClasses[activeClassName] || { categories: [] };
+      const filterSelect = document.getElementById('category-filter-dropdown');
+      const targetCalcSelect = document.getElementById('target-test-category');
+      const prev = filterSelect.value;
+      
+      filterSelect.innerHTML = '<option value="ALL">Show All Categories</option>';
+      targetCalcSelect.innerHTML = '';
+      currentClass.categories.forEach(c => {
+        filterSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        targetCalcSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      });
+      filterSelect.value = (prev && filterSelect.querySelector(`option[value="${prev}"]`)) ? prev : "ALL";
     }
 
     function parseScoreString(str) {
@@ -328,45 +304,33 @@
     }
 
     function buildUiElementsFromMemory() {
-      const currentClass = globalClasses[activeClassName] || { categories: [], assignments: [] };
-      
-      // Sync Filters
-      const filter = document.getElementById('category-filter-dropdown');
-      const targetCat = document.getElementById('target-test-category');
-      filter.innerHTML = '<option value="ALL">All Pools</option>';
-      targetCat.innerHTML = '';
-      currentClass.categories.forEach(c => {
-        filter.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        targetCat.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-      });
-
-      // Render Active Allocations Rows
+      const targetClass = globalClasses[activeClassName] || { categories: [], assignments: [] };
       const catHook = document.getElementById('category-rows-hook');
       catHook.innerHTML = '';
-      currentClass.categories.forEach((cat, idx) => {
+      targetClass.categories.forEach((cat, index) => {
         catHook.innerHTML += `
           <div class="row-item-3col cat-data-row">
             <input type="text" value="${cat.name}" class="cat-name-input" oninput="readUiStateIntoMemory()">
             <input type="number" value="${cat.weight}" class="cat-weight-input" oninput="readUiStateIntoMemory()">
-            <button class="remove-btn" onclick="globalClasses[activeClassName].categories.splice(${idx},1); buildUiElementsFromMemory()">✕</button>
+            <button class="remove-btn" onclick="globalClasses[activeClassName].categories.splice(${index},1); populateCategoryFilters(); buildUiElementsFromMemory()">✕</button>
           </div>`;
       });
 
-      // Render Selected Assignments Logger list bound to Category placement select
+      const filterSelection = document.getElementById('category-filter-dropdown').value;
       const assignHook = document.getElementById('assignment-rows-hook');
       assignHook.innerHTML = '';
-      currentClass.assignments.forEach((asm, idx) => {
-        if(filter.value !== "ALL" && asm.category !== filter.value) return;
-        let opts = "";
-        currentClass.categories.forEach(c => opts += `<option value="${c.name}" ${asm.category===c.name?'selected':''}>${c.name}</option>`);
+      targetClass.assignments.forEach((asm, index) => {
+        if (filterSelection !== "ALL" && asm.category !== filterSelection) return;
+        let selectOptions = '';
+        targetClass.categories.forEach(c => selectOptions += `<option value="${c.name}" ${asm.category === c.name ? 'selected' : ''}>${c.name}</option>`);
         assignHook.innerHTML += `
-          <div class="row-item-3col asm-data-row" data-index="${idx}">
+          <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
-            <div style="display:flex; gap:8px;">
-              <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${opts}</select>
-              <input type="text" value="${asm.scoreStr || '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()">
+            <div style="display:flex; gap: 8px;">
+              <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
+              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()">
             </div>
-            <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${idx},1); buildUiElementsFromMemory()">✕</button>
+            <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${index},1); buildUiElementsFromMemory()">✕</button>
           </div>`;
       });
       runCalculations();
@@ -375,23 +339,18 @@
     function readUiStateIntoMemory() {
       const currentClass = globalClasses[activeClassName];
       if(!currentClass) return;
-      
-      const catRows = document.querySelectorAll('.cat-data-row');
-      currentClass.categories = [];
-      catRows.forEach(row => {
-        currentClass.categories.push({
-          name: row.querySelector('.cat-name-input').value,
-          weight: parseFloat(row.querySelector('.cat-weight-input').value) || 0
-        });
+      document.querySelectorAll('.cat-data-row').forEach((row, idx) => {
+        if(currentClass.categories[idx]) {
+          currentClass.categories[idx].name = row.querySelector('.cat-name-input').value;
+          currentClass.categories[idx].weight = parseFloat(row.querySelector('.cat-weight-input').value) || 0;
+        }
       });
-
-      const asmRows = document.querySelectorAll('.asm-data-row');
-      asmRows.forEach(row => {
-        const idx = parseInt(row.getAttribute('data-index'));
-        if(currentClass.assignments[idx]) {
-          currentClass.assignments[idx].name = row.querySelector('.asm-name-input').value;
-          currentClass.assignments[idx].category = row.querySelector('.asm-cat-select').value;
-          currentClass.assignments[idx].scoreStr = row.querySelector('.asm-score-input').value;
+      document.querySelectorAll('.asm-data-row').forEach(row => {
+        const targetIdx = parseInt(row.getAttribute('data-index'));
+        if(currentClass.assignments[targetIdx]) {
+          currentClass.assignments[targetIdx].name = row.querySelector('.asm-name-input').value;
+          currentClass.assignments[targetIdx].category = row.querySelector('.asm-cat-select').value;
+          currentClass.assignments[targetIdx].scoreStr = row.querySelector('.asm-score-input').value;
         }
       });
       runCalculations();
@@ -399,34 +358,81 @@
 
     function runCalculations() {
       const currentClass = globalClasses[activeClassName];
-      if(!currentClass) return;
-
+      if (!currentClass) return;
       let overallScore = 0, totalValidWeight = 0;
       currentClass.categories.forEach(cat => {
         const matches = currentClass.assignments.filter(a => a.category === cat.name);
-        if(matches.length > 0) {
-          let sum = matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0);
+        if (matches.length > 0) {
+          let sum = matches.reduce((acc, m) => acc + parseScoreString(m.scoreStr), 0);
           overallScore += (sum / matches.length) * (cat.weight / 100);
           totalValidWeight += cat.weight;
         }
       });
-
       let finalNormalizedPct = totalValidWeight > 0 ? (overallScore / (totalValidWeight / 100)) : 0;
       document.getElementById('score-pct-badge').innerText = `${finalNormalizedPct.toFixed(1)}%`;
+      
+      let letter = 'F';
+      const sortedKeys = Object.keys(globalScale).sort((a,b) => globalScale[b] - globalScale[a]);
+      for (let k of sortedKeys) {
+        if (finalNormalizedPct >= globalScale[k]) {
+          letter = k.replace('plus','+').replace('minus','-');
+          break;
+        }
+      }
+      document.getElementById('score-letter-badge').innerText = letter;
+    }
+
+    function calculateRequiredExamScore() {
+      const targetGrade = parseFloat(document.getElementById('target-class-grade').value) || 0;
+      const targetCatName = document.getElementById('target-test-category').value;
+      const currentClass = globalClasses[activeClassName];
+      if (!currentClass || !targetCatName) return;
+
+      let totalWeight = currentClass.categories.reduce((acc, c) => acc + c.weight, 0);
+      if(totalWeight === 0) return;
+
+      let currentContribution = 0, targetCatWeight = 0;
+      currentClass.categories.forEach(cat => {
+        if (cat.name === targetCatName) {
+          targetCatWeight = cat.weight;
+        } else {
+          const matches = currentClass.assignments.filter(a => a.category === cat.name);
+          const catAvg = matches.length > 0 ? (matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0) / matches.length) : 100;
+          currentContribution += catAvg * (cat.weight / 100);
+        }
+      });
+
+      const matches = currentClass.assignments.filter(a => a.category === targetCatName);
+      const requiredCatAvg = ((targetGrade * (totalWeight / 100)) - currentContribution) / (targetCatWeight / 100);
+      let requiredTestScore = matches.length === 0 ? requiredCatAvg : (requiredCatAvg * (matches.length + 1)) - matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0);
+
+      document.getElementById('target-result-badge').innerText = requiredTestScore <= 0 ? "Goal met! You can score a 0.0% safely." : `Required score on next evaluation: ${requiredTestScore.toFixed(1)}%`;
+    }
+
+    async function syncDataWithDatabase() {
+      await fetch('/api/userdata', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classes: globalClasses })
+      });
     }
 
     async function saveAllCurrentDataToServer() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if(user) {
-        localStorage.setItem(`gradebook_${user.id}`, JSON.stringify({ classes: globalClasses, gradingScale: globalScale }));
-        alert("Encrypted cloud sync status saved safely to modern layout bounds!");
-      }
+      readUiStateIntoMemory();
+      await syncDataWithDatabase();
+      alert("Matrix configuration committed successfully!");
+      buildUiElementsFromMemory();
     }
 
-    function appendBlankCategoryRow() { globalClasses[activeClassName].categories.push({name:"New Pool", weight:0}); buildUiElementsFromMemory(); }
-    function appendBlankAssignmentRow() { globalClasses[activeClassName].assignments.push({name:"Evaluation", category: globalClasses[activeClassName].categories[0]?.name || "Exams", scoreStr: "100"}); buildUiElementsFromMemory(); }
+    function appendBlankCategoryRow() { globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 }); populateCategoryFilters(); buildUiElementsFromMemory(); }
+    function appendBlankAssignmentRow() { const cats = globalClasses[activeClassName].categories; globalClasses[activeClassName].assignments.push({ name: "New Item", category: cats.length > 0 ? cats[0].name : "Exams", scoreStr: "100" }); buildUiElementsFromMemory(); }
+    function createNewClassChannel() { const name = document.getElementById('new-class-input').value.trim(); if(name) { globalClasses[name] = { categories: [{ name: "Exams", weight: 100 }], assignments: [] }; activeClassName = name; populateClassDropdown(); } }
+    function switchActiveClass() { activeClassName = document.getElementById('class-dropdown').value; populateCategoryFilters(); buildUiElementsFromMemory(); }
+    function renameCurrentSubject() { const n = document.getElementById('rename-class-input').value.trim(); if(n && !globalClasses[n]) { globalClasses[n] = globalClasses[activeClassName]; delete globalClasses[activeClassName]; activeClassName = n; populateClassDropdown(); } }
+    async function deleteCurrentClassChannel() { if(confirm("Delete class?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
+    async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); }
 
-    window.onload = checkAuthSession;
+    window.onload = checkSession;
   </script>
 </body>
 </html>
