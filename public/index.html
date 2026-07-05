@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Academic Gradebook</title>
+  <title>Academic Gradebook Calculator</title>
   <style>
     :root {
       --bg-cream: #faf8f5;
@@ -24,7 +24,7 @@
 
     .auth-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
     .auth-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; max-width: 420px; width: 100%; box-shadow: 0 4px 20px rgba(115, 38, 38, 0.04); }
-    .dashboard-wrapper { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+    .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
 
     h1, h2, h3 { color: var(--burgundy); margin-top: 0; }
     label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
@@ -54,14 +54,8 @@
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .scale-matrix input { padding: 6px; text-align: center; margin-bottom: 6px; }
 
-    .course-row-item {
-      display: grid;
-      grid-template-columns: 2fr 2fr 1fr 40px;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .course-row-item input, .course-row-item select { margin-bottom: 0; padding: 10px; }
+    .row-item-3col { display: grid; grid-template-columns: 3fr 2fr 40px; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .row-item-3col input, .row-item-3col select { margin-bottom: 0; padding: 10px; }
 
     .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; padding: 0; }
     .remove-btn:hover { color: var(--burgundy); }
@@ -90,20 +84,27 @@
   <div id="app-view" class="dashboard-wrapper hidden">
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
-        <h1 style="margin: 0;">Multi-Class Gradebook</h1>
+        <h1 style="margin: 0;">Weighted Gradebook Calculator</h1>
         <p id="current-user-tag" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
       </div>
       <button onclick="logOutUser()" style="background: #555;">Log Out</button>
     </div>
 
     <div class="card" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 200px;">
-        <label>Active Class Subject</label>
+      <div style="flex: 1; min-width: 180px;">
+        <label>Select Active Subject</label>
         <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0;"></select>
       </div>
+      <div style="flex: 1; min-width: 180px;">
+        <label>Rename Current Subject</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="rename-class-input" placeholder="New subject name" style="margin-bottom: 0;">
+          <button onclick="renameCurrentSubject()" style="white-space: nowrap; background: #6c757d;">Rename</button>
+        </div>
+      </div>
       <div style="display: flex; gap: 8px; align-items: flex-end;">
-        <button onclick="deleteCurrentClassChannel()" class="danger-btn" style="white-space: nowrap; margin-right: 15px;">Delete Current Class</button>
-        <input type="text" id="new-class-input" placeholder="e.g., Chemistry" style="margin-bottom: 0; width: 180px;">
+        <button onclick="deleteCurrentClassChannel()" class="danger-btn" style="white-space: nowrap; margin-right: 15px;">Delete Class</button>
+        <input type="text" id="new-class-input" placeholder="e.g., Physics" style="margin-bottom: 0; width: 140px;">
         <button onclick="createNewClassChannel()" style="white-space: nowrap;">+ Add Class</button>
       </div>
     </div>
@@ -112,35 +113,44 @@
       
       <div>
         <div class="card">
-          <h2 id="active-class-title">Assignments Breakdown</h2>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Log your individual scores here. The calculator automatically weighs Exams, Tests, and Homework evenly across entries.</p>
-
-          <div class="course-row-item" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
-            <div>Assignment Name</div>
-            <div>Category Type</div>
-            <div>Score %</div>
-            <div style="text-align: center;">Clear</div>
+          <h3>1. Class Weights Setup</h3>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Define grading pools and their values (Total must sum up to 100%).</p>
+          <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            <div>Category Name</div>
+            <div>Category Weight %</div>
+            <div style="text-align: center;">✕</div>
           </div>
+          <div id="category-rows-hook" style="margin-top: 10px;"></div>
+          <button onclick="appendBlankCategoryRow()" style="background: #555; margin-top: 10px;">+ Add Category</button>
+        </div>
 
-          <div id="table-rows-hook"></div>
-
-          <div style="display: flex; gap: 12px; margin-top: 20px;">
-            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Assignment</button>
-            <button onclick="saveRowsToServer()">Save Class Changes</button>
+        <div class="card">
+          <h3>2. Assignment Entries Log</h3>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Enter assignments scores to update calculated category values.</p>
+          <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+            <div>Assignment Name</div>
+            <div>Category Placement / Score %</div>
+            <div style="text-align: center;">✕</div>
+          </div>
+          <div id="assignment-rows-hook" style="margin-top: 10px;"></div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 25px;">
+            <button onclick="appendBlankAssignmentRow()" style="background: #555;">+ Add Assignment</button>
+            <button onclick="saveAllCurrentDataToServer()" style="background: var(--burgundy);">Save Entire Class Layout</button>
           </div>
         </div>
       </div>
 
       <div>
         <div class="card" style="text-align: center;">
-          <h3>Class Average</h3>
+          <h3>Weighted Average</h3>
           <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
           <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated unweighted assignment arithmetic average.</p>
+          <p style="color: #666; font-size: 13px; margin-top: 6px;" id="weight-alert-status">Total Configuration Balance: 0%</p>
         </div>
 
         <div class="card">
-          <h3>Grading Thresholds Scale</h3>
+          <h3>Grading Threshold Floors</h3>
           <div class="scale-matrix">
             <div><label>A+</label><input type="number" id="sc-Aplus" value="97"></div>
             <div><label>A</label><input type="number" id="sc-A" value="93"></div>
@@ -210,7 +220,6 @@
         Object.keys(globalScale).forEach(key => {
           const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
         });
-
         populateClassDropdown();
       }
     }
@@ -221,7 +230,7 @@
       const keys = Object.keys(globalClasses);
       
       if(keys.length === 0) {
-        globalClasses["General Class"] = [];
+        globalClasses["General Class"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
         keys.push("General Class");
       }
       
@@ -233,103 +242,195 @@
         activeClassName = keys[0];
       }
       dropdown.value = activeClassName;
-      buildRowsInDOM();
+      document.getElementById('rename-class-input').value = activeClassName;
+      buildUiElementsFromMemory();
     }
 
     function createNewClassChannel() {
       const inputEl = document.getElementById('new-class-input');
-      const name = inputEl.value;
-      if(name && name.trim() !== "") {
-        const cleanName = name.trim();
-        if(!globalClasses[cleanName]) {
-          globalClasses[cleanName] = [{ name: "Assignment 1", type: "Exams", score: 100 }];
-        }
-        activeClassName = cleanName;
+      const name = inputEl.value.trim();
+      if(name && !globalClasses[name]) {
+        globalClasses[name] = {
+          categories: [{ name: "Exams", weight: 100 }],
+          assignments: []
+        };
+        activeClassName = name;
         inputEl.value = ""; 
         populateClassDropdown();
       }
     }
 
+    function renameCurrentSubject() {
+      const newName = document.getElementById('rename-class-input').value.trim();
+      if(!newName || newName === activeClassName) return;
+      if(globalClasses[newName]) { alert("A class with that name already exists!"); return; }
+      
+      globalClasses[newName] = globalClasses[activeClassName];
+      delete globalClasses[activeClassName];
+      activeClassName = newName;
+      populateClassDropdown();
+    }
+
     async function deleteCurrentClassChannel() {
-      if(confirm(`Are you sure you want to delete the class "${activeClassName}"?`)) {
+      if(confirm(`Are you sure you want to delete "${activeClassName}"?`)) {
         delete globalClasses[activeClassName];
         activeClassName = "";
-        
-        await fetch('/api/userdata', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ classes: globalClasses })
-        });
-        
+        await syncDataWithDatabase();
         populateClassDropdown();
       }
     }
 
     function switchActiveClass() {
       activeClassName = document.getElementById('class-dropdown').value;
-      buildRowsInDOM();
+      document.getElementById('rename-class-input').value = activeClassName;
+      buildUiElementsFromMemory();
     }
 
-    function buildRowsInDOM() {
-      document.getElementById('active-class-title').innerText = `${activeClassName} Assignments`;
-      const hook = document.getElementById('table-rows-hook');
-      hook.innerHTML = '';
-      
-      const currentClassRows = globalClasses[activeClassName] || [];
-      
-      currentClassRows.forEach((item, index) => {
-        const typeValue = item.type || "Exams";
-        hook.innerHTML += `
-          <div class="course-row-item" data-id="${index}">
-            <input type="text" value="${item.name || ''}" class="inp-name" oninput="readRowsFromDOM()">
-            <select class="inp-type" onchange="readRowsFromDOM()">
-              <option value="Exams" ${typeValue === 'Exams' ? 'selected' : ''}>Exams</option>
-              <option value="Tests" ${typeValue === 'Tests' ? 'selected' : ''}>Tests</option>
-              <option value="Homework" ${typeValue === 'Homework' ? 'selected' : ''}>Homework</option>
-              <option value="Quizzes" ${typeValue === 'Quizzes' ? 'selected' : ''}>Quizzes</option>
-              <option value="Projects" ${typeValue === 'Projects' ? 'selected' : ''}>Projects</option>
-            </select>
-            <input type="number" value="${item.score !== undefined ? item.score : 100}" class="inp-score" oninput="readRowsFromDOM()">
-            <button class="remove-btn" onclick="removeRowItem(${index})">✕</button>
+    function buildUiElementsFromMemory() {
+      const targetClass = globalClasses[activeClassName] || { categories: [], assignments: [] };
+      if(!targetClass.categories) targetClass.categories = [];
+      if(!targetClass.assignments) targetClass.assignments = [];
+
+      // Render categories
+      const catHook = document.getElementById('category-rows-hook');
+      catHook.innerHTML = '';
+      targetClass.categories.forEach((cat, index) => {
+        catHook.innerHTML += `
+          <div class="row-item-3col cat-data-row">
+            <input type="text" value="${cat.name}" class="cat-name-input" oninput="readUiStateIntoMemory()">
+            <input type="number" value="${cat.weight}" class="cat-weight-input" oninput="readUiStateIntoMemory()">
+            <button class="remove-btn" onclick="removeCategory(${index})">✕</button>
           </div>
         `;
       });
+
+      // Render assignments
+      const assignHook = document.getElementById('assignment-rows-hook');
+      assignHook.innerHTML = '';
+      targetClass.assignments.forEach((asm, index) => {
+        let selectOptions = '';
+        targetClass.categories.forEach(c => {
+          selectOptions += `<option value="${c.name}" ${asm.category === c.name ? 'selected' : ''}>${c.name}</option>`;
+        });
+
+        assignHook.innerHTML += `
+          <div class="row-item-3col asm-data-row">
+            <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
+            <div style="display:flex; gap: 6px;">
+              <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
+              <input type="number" value="${asm.score}" class="asm-score-input" style="width: 80px;" oninput="readUiStateIntoMemory()">
+            </div>
+            <button class="remove-btn" onclick="removeAssignment(${index})">✕</button>
+          </div>
+        `;
+      });
+
       runCalculations();
     }
 
     function appendBlankCategoryRow() {
-      if(!globalClasses[activeClassName]) globalClasses[activeClassName] = [];
-      globalClasses[activeClassName].push({ name: "New Item", type: "Exams", score: 100 });
-      buildRowsInDOM();
+      globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 });
+      buildUiElementsFromMemory();
     }
 
-    function removeRowItem(idx) {
-      globalClasses[activeClassName].splice(idx, 1);
-      buildRowsInDOM();
+    function removeCategory(index) {
+      globalClasses[activeClassName].categories.splice(index, 1);
+      buildUiElementsFromMemory();
     }
 
-    function readRowsFromDOM() {
-      const DOMrows = document.querySelectorAll('#table-rows-hook .course-row-item');
-      globalClasses[activeClassName] = [];
-      
-      DOMrows.forEach(row => {
-        globalClasses[activeClassName].push({
-          name: row.querySelector('.inp-name').value,
-          type: row.querySelector('.inp-type').value,
-          score: parseFloat(row.querySelector('.inp-score').value) || 0
+    function appendBlankAssignmentRow() {
+      const cats = globalClasses[activeClassName].categories;
+      const defaultCat = cats.length > 0 ? cats[0].name : "Exams";
+      globalClasses[activeClassName].assignments.push({ name: "Homework", category: defaultCat, score: 100 });
+      buildUiElementsFromMemory();
+    }
+
+    function removeAssignment(index) {
+      globalClasses[activeClassName].assignments.splice(index, 1);
+      buildUiElementsFromMemory();
+    }
+
+    function readUiStateIntoMemory() {
+      const catRows = document.querySelectorAll('.cat-data-row');
+      globalClasses[activeClassName].categories = [];
+      catRows.forEach(row => {
+        globalClasses[activeClassName].categories.push({
+          name: row.querySelector('.cat-name-input').value,
+          weight: parseFloat(row.querySelector('.cat-weight-input').value) || 0
         });
       });
+
+      const asmRows = document.querySelectorAll('.asm-data-row');
+      globalClasses[activeClassName].assignments = [];
+      asmRows.forEach(row => {
+        globalClasses[activeClassName].assignments.push({
+          name: row.querySelector('.asm-name-input').value,
+          category: row.querySelector('.asm-cat-select').value,
+          score: parseFloat(row.querySelector('.asm-score-input').value) || 0
+        });
+      });
+
       runCalculations();
     }
 
-    async function saveRowsToServer() {
-      readRowsFromDOM();
+    function runCalculations() {
+      const currentClass = globalClasses[activeClassName];
+      if (!currentClass) return;
+
+      let weightTotal = 0;
+      currentClass.categories.forEach(c => weightTotal += c.weight);
+      
+      const statusLabel = document.getElementById('weight-alert-status');
+      statusLabel.innerText = `Total Setup Weight: ${weightTotal}%`;
+      statusLabel.style.color = (weightTotal === 100) ? 'green' : 'var(--burgundy)';
+
+      // Calculate averages per category
+      let overallScore = 0;
+      let totalValidWeight = 0;
+
+      currentClass.categories.forEach(cat => {
+        const matches = currentClass.assignments.filter(a => a.category === cat.name);
+        if (matches.length > 0) {
+          let sum = 0;
+          matches.forEach(m => sum += m.score);
+          let catAvg = sum / matches.length;
+          
+          overallScore += catAvg * (cat.weight / 100);
+          totalValidWeight += cat.weight;
+        }
+      });
+
+      let finalNormalizedPct = 0;
+      if (totalValidWeight > 0) {
+        finalNormalizedPct = (overallScore / (totalValidWeight / 100));
+      }
+
+      document.getElementById('score-pct-badge').innerText = `${finalNormalizedPct.toFixed(1)}%`;
+
+      let letter = 'F';
+      const sortedKeys = Object.keys(globalScale).sort((a,b) => globalScale[b] - globalScale[a]);
+      for (let k of sortedKeys) {
+        if (finalNormalizedPct >= globalScale[k]) {
+          letter = k.replace('plus','+').replace('minus','-');
+          break;
+        }
+      }
+      document.getElementById('score-letter-badge').innerText = letter;
+    }
+
+    async function syncDataWithDatabase() {
       await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classes: globalClasses })
       });
-      alert("Changes saved to database successfully!");
+    }
+
+    async function saveAllCurrentDataToServer() {
+      readUiStateIntoMemory();
+      await syncDataWithDatabase();
+      alert("All configurations saved successfully!");
+      buildUiElementsFromMemory();
     }
 
     async function saveScaleToServer() {
@@ -342,34 +443,6 @@
         body: JSON.stringify({ gradingScale: globalScale })
       });
       runCalculations();
-    }
-
-    function runCalculations() {
-      const currentClassRows = globalClasses[activeClassName] || [];
-      let totalScores = 0;
-      let count = 0;
-
-      currentClassRows.forEach(item => {
-        totalScores += (item.score !== undefined ? item.score : 100);
-        count++;
-      });
-
-      let overallAverage = 0;
-      if (count > 0) {
-        overallAverage = totalScores / count;
-      }
-      
-      document.getElementById('score-pct-badge').innerText = `${overallAverage.toFixed(1)}%`;
-      
-      let letter = 'F';
-      const sortedKeys = Object.keys(globalScale).sort((a,b) => globalScale[b] - globalScale[a]);
-      for (let k of sortedKeys) {
-        if (overallAverage >= globalScale[k]) {
-          letter = k.replace('plus','+').replace('minus','-');
-          break;
-        }
-      }
-      document.getElementById('score-letter-badge').innerText = letter;
     }
 
     window.onload = checkSession;
