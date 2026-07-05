@@ -328,7 +328,6 @@
       transform: rotate(180deg);
     }
     
-    /* FIX: Placed options menu over all elements & styled smooth custom scrollbars */
     .vibe-dropdown-options {
       position: absolute;
       top: calc(100% + 6px);
@@ -442,7 +441,10 @@
       font-size: 14px;
     }
 
+    /* FIXED: Added position relative and z-index to fly above backdrop-filtered rows */
     .toolbar-card {
+      position: relative;
+      z-index: 20;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius-lg);
@@ -474,6 +476,7 @@
     }
 
     .card {
+      position: relative;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius-lg);
@@ -484,6 +487,11 @@
       transition: var(--transition-smooth);
     }
     
+    /* FIXED: Ensures active workspace cards drop background layers when dropdowns are open inside them */
+    .card:focus-within {
+      z-index: 15;
+    }
+
     .card-header {
       display: flex;
       justify-content: space-between;
