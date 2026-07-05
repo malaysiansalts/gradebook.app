@@ -27,7 +27,7 @@ function readDB() {
     if (!data) return { users: {} };
     return JSON.parse(data);
   } catch (e) {
-    console.error("Database reading error encountered. Resetting memory state safely.");
+    console.error("Database reading error encountered safely resetting memory.");
     return { users: {} };
   }
 }
@@ -43,18 +43,24 @@ function writeDB(data) {
 app.post('/api/register', (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
+    if (!email || !password) return res.status(400).json({ error: "Missing parameters" });
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
-    if (db.users[normalizedEmail]) return res.status(400).json({ error: "Account already exists" });
+    if (db.users[normalizedEmail]) return res.status(400).json({ error: "Account exists" });
     
     db.users[normalizedEmail] = { 
       password, 
       classes: {
-        "Math": [
-          { name: "Midterm Exam", type: "Exams", score: 85 },
-          { name: "Homework 1", type: "Homework", score: 95 }
-        ]
+        "Math": {
+          categories: [
+            { name: "Exams", weight: 60 },
+            { name: "Homework", weight: 40 }
+          ],
+          assignments: [
+            { name: "Midterm", category: "Exams", score: 85 },
+            { name: "Homework 1", category: "Homework", score: 95 }
+          ]
+        }
       },
       gradingScale: { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 }
     };
@@ -70,25 +76,25 @@ app.post('/api/login', (req, res) => {
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
     const user = db.users[normalizedEmail];
-    if (!user || user.password !== password) return res.status(401).json({ error: "Invalid email or password" });
+    if (!user || user.password !== password) return res.status(401).json({ error: "Invalid credentials" });
     req.session.userEmail = normalizedEmail;
     res.json({ email: normalizedEmail });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
-app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" }); res.json({ email: req.session.userEmail }); });
+app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status(401).json({ error: "Unauthorized" }); res.json({ email: req.session.userEmail }); });
 
 app.get('/api/userdata', (req, res) => {
-  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  if (!req.session.userEmail) return res.status(401).json({ error: "Unauthorized" });
   const db = readDB();
   const user = db.users[req.session.userEmail];
-  if (!user) return res.status(404).json({ error: "User data missing" });
+  if (!user) return res.status(404).json({ error: "Missing data state" });
   res.json({ classes: user.classes || {}, gradingScale: user.gradingScale || {} });
 });
 
 app.put('/api/userdata', (req, res) => {
-  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  if (!req.session.userEmail) return res.status(401).json({ error: "Unauthorized" });
   const { classes, gradingScale } = req.body;
   const db = readDB();
   if (db.users[req.session.userEmail]) {
