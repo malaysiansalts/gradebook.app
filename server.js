@@ -21,7 +21,11 @@ function readDB() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify({ users: {} }, null, 2));
   }
-  return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+  } catch (e) {
+    return { users: {} };
+  }
 }
 
 function writeDB(data) {
@@ -67,17 +71,38 @@ app.post('/api/login', (req, res, next) => {
 app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" }); res.json({ email: req.session.userEmail }); });
 
+// SECURE ROUTE: Sanitizes corrupted user data on-the-fly
 app.get('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
+  
   const db = readDB();
   const user = db.users[req.session.userEmail];
-  res.json({ classes: user.classes || {}, gradingScale: user.gradingScale });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const cleanClasses = {};
+  const rawClasses = user.classes || {};
+
+  // Strips legacy "Comp. Wt" properties out of the JSON profile permanently
+  Object.keys(rawClasses).forEach(className => {
+    if (Array.isArray(rawClasses[className])) {
+      cleanClasses[className] = rawClasses[className].map(item => ({
+        name: item.name || "Category",
+        weight: parseFloat(item.weight) || 0,
+        currentAvg: parseFloat(item.currentAvg) || 0
+      }));
+    } else {
+      cleanClasses[className] = [];
+    }
+  });
+
+  res.json({ classes: cleanClasses, gradingScale: user.gradingScale || {} });
 });
 
 app.put('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const { classes, gradingScale } = req.body;
   const db = readDB();
+  
   if (db.users[req.session.userEmail]) {
     if (classes) db.users[req.session.userEmail].classes = classes;
     if (gradingScale) db.users[req.session.userEmail].gradingScale = gradingScale;
