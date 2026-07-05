@@ -20,7 +20,6 @@
   }
   * { box-sizing: border-box; }
   
-  /* 1. Global App-Wide Micro-Transitions */
   body {
     margin: 0;
     background: var(--paper);
@@ -34,7 +33,6 @@
     to { opacity: 1; transform: scale(1); filter: blur(0); }
   }
 
-  /* 2. Content Drop-in Animation for Cards, Rows, and Fields */
   div, form, section, li, tr, table {
     animation: componentSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -73,7 +71,6 @@
   h1.title { font-size: 24px; font-weight: 600; letter-spacing: -0.01em; margin: 0; flex: 1; }
   .account-area { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
   
-  /* Modern Button Hover Mechanics */
   .logout-btn {
     background: none; border: 1px solid var(--line); border-radius: 8px;
     padding: 6px 12px; font-family: inherit; font-size: 13px; color: var(--ink);
@@ -106,7 +103,6 @@
   .course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
   .course-row { display: flex; align-items: center; gap: 6px; }
   
-  /* Course Navigation List Transition */
   .course-btn {
     flex: 1; min-width: 0; text-align: left; padding: 10px 12px; border-radius: 8px;
     border: none; background: transparent; cursor: pointer; font-family: inherit; font-size: 14px;
@@ -175,7 +171,6 @@
   .item-label-input { flex: 1; min-width: 0; font-size: 13px; background: transparent; border: none; border-bottom: 1px solid transparent; outline: none; font-family: inherit; color: var(--ink); transition: border 0.2s ease; }
   .item-label-input:focus { border-bottom-color: var(--brick); }
   
-  /* Focus pop interaction for numeric entries */
   .item-num-input { 
     width: 72px; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 13px; 
     background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; 
@@ -197,7 +192,6 @@
 
   input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { opacity: 0.35; }
 
-  /* ---- Auth screen ---- */
   .auth-wrap {
     min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
   }
@@ -234,6 +228,20 @@
   .auth-switch button { background: none; border: none; color: var(--brick); cursor: pointer; font-family: inherit; font-size: 13px; padding: 0; }
   .auth-error { color: var(--brick); font-size: 13px; margin: -6px 0 14px; }
   .hidden { display: none !important; }
+
+  /* Drag and Drop Custom Adjustments */
+  .course-row {
+    cursor: grab;
+    user-select: none;
+  }
+  .course-row:active {
+    cursor: grabbing;
+  }
+  .course-row.dragging {
+    opacity: 0.4;
+    background: var(--paper-dim);
+    border-radius: 8px;
+  }
 </style>
 </head>
 <body>
@@ -474,112 +482,201 @@ function el(tag, props = {}, children = []) {
   });
   return node;
 }
-const trashSVG = () => { const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>`; return d.firstChild; };
-const chevronSVG = (open) => { const d = document.createElement('div'); d.innerHTML = open ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>` : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>`; return d.firstChild; };
-const plusSVG = () => { const d = document.createElement('div'); d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`; return d.firstChild; };
+const trashSVG = () => { 
+  const d = document.createElement('div'); 
+  d.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
+  return d.firstChild;
+};
 
-function renderSidebar() {
+// ---------- Drag & Drop Handlers ----------
+function attachSidebarDragListeners(container) {
+  container.addEventListener('dragstart', (e) => {
+    const targetRow = e.target.closest('.course-row');
+    if (targetRow) {
+      targetRow.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  });
+
+  container.addEventListener('dragend', (e) => {
+    const targetRow = e.target.closest('.course-row');
+    if (targetRow) {
+      targetRow.classList.remove('dragging');
+    }
+    
+    const currentRows = [...container.querySelectorAll('.course-row')];
+    const reorderedIds = currentRows.map(row => row.getAttribute('data-id'));
+    
+    state.courses = reorderedIds.map(id => state.courses.find(c => c.id === id));
+    scheduleSave();
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const draggingRow = container.querySelector('.course-row.dragging');
+    if (!draggingRow) return;
+
+    const siblings = [...container.querySelectorAll('.course-row:not(.dragging)')];
+    
+    const nextSibling = siblings.find(sibling => {
+      const box = sibling.getBoundingClientRect();
+      return e.clientY <= box.top + box.height / 2;
+    });
+
+    if (nextSibling) {
+      container.insertBefore(draggingRow, nextSibling);
+    } else {
+      container.appendChild(draggingRow);
+    }
+  });
+}
+
+function render() {
   const list = document.getElementById("course-list");
   list.innerHTML = "";
+  
   state.courses.forEach(c => {
-    const r = computeCourse(c);
-    const btn = el("button", { class: "course-btn" + (c.id === state.activeId ? " active" : ""), onclick: () => setActive(c.id) }, [
-      el("span", { class: "course-name" }, c.name),
-      el("span", { class: "course-pct mono" }, r.overall !== null ? `${r.overall.toFixed(1)}%` : "—"),
+    const cData = computeCourse(c);
+    const isSel = c.id === state.activeId;
+    
+    const courseRow = el("li", { 
+      class: "course-row", 
+      draggable: "true", 
+      "data-id": c.id 
+    }, [
+      el("button", { class: `course-btn ${isSel?'active':''}`, onclick: () => setActive(c.id) }, [
+        el("span", { class: "course-name" }, c.name),
+        el("span", { class: "course-pct" }, cData.overall !== null ? `${cData.overall.toFixed(1)}%` : "—")
+      ]),
+      el("button", { class: "icon-btn", onclick: (e) => { e.stopPropagation(); removeCourse(c.id); } }, [
+        trashSVG()
+      ])
     ]);
-    list.appendChild(el("li", { class: "course-row" }, [btn]));
+    
+    list.appendChild(courseRow);
   });
-}
+  
+  attachSidebarDragListeners(list);
 
-function renderMain() {
   const main = document.getElementById("main-content");
   main.innerHTML = "";
+  
   const course = getActive();
-  const result = computeCourse(course);
-  const weightOff = Math.abs(result.totalWeight - 100) > 0.001;
+  if (!course) return;
+  const metrics = computeCourse(course);
 
-  const nameInput = el("input", { class: "course-title-input serif", value: course.name, "aria-label": "Course name" });
-  nameInput.value = course.name;
-  nameInput.addEventListener("input", (e) => {
+  const titleInput = el("input", { class: "course-title-input", value: course.name, oninput: (e) => {
     updateActive(c => { c.name = e.target.value; return c; });
-    requestAnimationFrame(() => {
-      const el2 = document.querySelector(".course-title-input");
-      if (el2) { el2.focus(); el2.setSelectionRange(el2.value.length, el2.value.length); }
-    });
-  });
+  }});
+  
+  const cHeader = el("div", { class: "course-header" }, [titleInput]);
+  main.appendChild(cHeader);
 
-  const deleteCourseBtn = el("button", { class: "icon-btn", "aria-label": "Delete course", onclick: () => removeCourse(course.id) }, trashSVG());
-  main.appendChild(el("div", { class: "course-header" }, [nameInput, deleteCourseBtn]));
+  const totalWeightStr = `Total Category Weight: ${metrics.totalWeight}%`;
+  const bannerWarning = metrics.totalWeight !== 100 
+    ? el("div", { class: "banner-warning" }, `Weights equal ${metrics.totalWeight}%. Adjust categories to reach 100%.`)
+    : null;
 
-  const bannerLeft = el("div", {}, [
-    el("div", { class: "banner-label" }, "Current grade"),
-    el("div", { class: "banner-grade serif" }, [
-      result.overall !== null ? `${result.overall.toFixed(2)}%` : "No grades yet",
-      result.overall !== null ? el("span", { class: "banner-letter" }, letterGrade(result.overall)) : null,
+  const banner = el("div", { class: "banner" }, [
+    el("div", {}, [
+      el("div", { class: "banner-label" }, totalWeightStr),
+      el("div", { class: "banner-grade" }, [
+        document.createTextNode(metrics.overall !== null ? `${metrics.overall.toFixed(1)}%` : "—"),
+        el("span", { class: "banner-letter" }, ` ${letterGrade(metrics.overall)}`)
+      ])
     ]),
+    bannerWarning
   ]);
-  const bannerChildren = [bannerLeft];
-  if (weightOff) bannerChildren.push(el("div", { class: "banner-warning" }, `Category weights total ${result.totalWeight}%, not 100%.`));
-  main.appendChild(el("div", { class: "banner" }, bannerChildren));
+  main.appendChild(banner);
 
   course.categories.forEach(cat => {
-    const cr = result.catResults.find(r => r.id === cat.id);
-    const catNameInput = el("input", { class: "category-name-input", value: cat.name });
-    catNameInput.value = cat.name;
-    catNameInput.dataset.catid = cat.id;
-    catNameInput.addEventListener("input", (e) => {
-      updateActive(c => { c.categories.find(x => x.id === cat.id).name = e.target.value; return c; });
-      requestAnimationFrame(() => {
-        document.querySelectorAll(".category-name-input").forEach(inp => { if (inp.dataset.catid === cat.id) inp.focus(); });
+    const catResult = metrics.catResults.find(r => r.id === cat.id);
+    const catPctStr = (catResult && catResult.pct !== null) ? `${catResult.pct.toFixed(1)}%` : "—";
+    
+    const chevronSVG = el("button", { class: "chevron", onclick: () => {
+      updateActive(c => {
+        const target = c.categories.find(k => k.id === cat.id);
+        if (target) target.open = !target.open;
+        return c;
       });
-    });
-
-    const weightInput = el("input", { type: "number", class: "weight-input", value: cat.weight });
-    weightInput.addEventListener("input", (e) => {
-      updateActive(c => { c.categories.find(x => x.id === cat.id).weight = e.target.value; return c; });
-    });
-
-    const head = el("div", { class: "category-head" }, [
-      el("button", { class: "chevron", "aria-label": cat.open ? "Collapse" : "Expand", onclick: () => updateActive(c => { c.categories.find(x => x.id === cat.id).open = !cat.open; return c; }) }, chevronSVG(cat.open)),
-      catNameInput,
-      el("div", { class: "weight-input-wrap" }, [weightInput, el("span", {}, "% weight")]),
-      el("div", { class: "cat-pct mono" }, cr && cr.pct !== null ? `${cr.pct.toFixed(1)}%` : "—"),
-      el("button", { class: "icon-btn", "aria-label": "Delete category", onclick: () => updateActive(c => { c.categories = c.categories.filter(x => x.id !== cat.id); return c; }) }, trashSVG()),
+    }}, [
+      el("div", { style: `transform: rotate(${cat.open ? '0deg' : '-90deg'}); transition: transform 0.2s; display:flex;` }, [
+        el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+          el("polyline", { points: "6 9 12 15 18 9" })
+        ])
+      ])
     ]);
 
-    const categoryEl = el("div", { class: "category" }, [head]);
+    const nameInp = el("input", { class: "category-name-input", value: cat.name, oninput: (e) => {
+      updateActive(c => { const target = c.categories.find(k => k.id === cat.id); if (target) target.name = e.target.value; return c; });
+    }});
 
+    const weightInp = el("input", { class: "weight-input", type: "number", value: cat.weight, oninput: (e) => {
+      updateActive(c => { const target = c.categories.find(k => k.id === cat.id); if (target) target.weight = e.target.value === "" ? "" : Number(e.target.value); return c; });
+    }});
+
+    const delCatBtn = el("button", { class: "icon-btn", onclick: () => {
+      updateActive(c => { c.categories = c.categories.filter(k => k.id !== cat.id); return c; });
+    }}, [trashSVG()]);
+
+    const catHead = el("div", { class: "category-head" }, [
+      chevronSVG,
+      nameInp,
+      el("div", { class: "weight-input-wrap" }, [document.createTextNode("Weight: "), weightInp, document.createTextNode("%")]),
+      el("div", { class: "cat-pct mono" }, catPctStr),
+      delCatBtn
+    ]);
+
+    let catBody = null;
     if (cat.open) {
-      const body = el("div", { class: "category-body" });
-      if (cat.items.length === 0) body.appendChild(el("p", { class: "empty-note" }, "No grades entered yet."));
-      cat.items.forEach(item => {
-        const labelInput = el("input", { class: "item-label-input", value: item.label });
-        labelInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).label = e.target.value; return c; }));
-        const earnedInput = el("input", { type: "number", class: "item-num-input", placeholder: "earned", value: item.earned });
-        earnedInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).earned = e.target.value; return c; }));
-        const possibleInput = el("input", { type: "number", class: "item-num-input", placeholder: "of", value: item.possible });
-        possibleInput.addEventListener("input", (e) => updateActive(c => { c.categories.find(x => x.id === cat.id).items.find(i => i.id === item.id).possible = e.target.value; return c; }));
-        const delBtn = el("button", { class: "icon-btn", "aria-label": "Delete item", onclick: () => updateActive(c => { const t = c.categories.find(x => x.id === cat.id); t.items = t.items.filter(i => i.id !== item.id); return c; }) }, trashSVG());
-        body.appendChild(el("div", { class: "item-row" }, [labelInput, earnedInput, el("span", { class: "slash" }, "/"), possibleInput, delBtn]));
-      });
-      const addItemBtn = el("button", { class: "add-item-btn" }, [plusSVG(), " Add grade"]);
-      addItemBtn.addEventListener("click", () => updateActive(c => {
-        const t = c.categories.find(x => x.id === cat.id);
-        t.items.push({ id: uid(), label: `Item ${t.items.length + 1}`, earned: "", possible: "" });
-        return c;
-      }));
-      body.appendChild(addItemBtn);
-      categoryEl.appendChild(body);
+      const itemsList = [];
+      if (cat.items.length === 0) {
+        itemsList.push(el("p", { class: "empty-note" }, "No assignments added yet."));
+      } else {
+        cat.items.forEach((item, itemIdx) => {
+          const lblInp = el("input", { class: "item-label-input", value: item.name, placeholder: "Assignment name", oninput: (e) => {
+            updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].name = e.target.value; return c; });
+          }});
+          
+          const earnInp = el("input", { class: "item-num-input", type: "number", step: "any", value: item.earned, placeholder: "Earned", oninput: (e) => {
+            updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].earned = e.target.value === "" ? "" : e.target.value; return c; });
+          }});
+          
+          const possInp = el("input", { class: "item-num-input", type: "number", step: "any", value: item.possible, placeholder: "Possible", oninput: (e) => {
+            updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items[itemIdx].possible = e.target.value === "" ? "" : e.target.value; return c; });
+          }});
+
+          const delItemBtn = el("button", { class: "icon-btn", onclick: () => {
+            updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items.splice(itemIdx, 1); return c; });
+          }}, [trashSVG()]);
+
+          itemsList.push(el("div", { class: "item-row" }, [lblInp, earnInp, el("span", { class: "slash" }, "/"), possInp, delItemBtn]));
+        });
+      }
+
+      const addItemBtn = el("button", { class: "add-item-btn", onclick: () => {
+        updateActive(c => { const t = c.categories.find(k => k.id === cat.id); if (t) t.items.push({ name: "", earned: "", possible: "" }); return c; });
+      }}, [
+        el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }, [el("path", { d: "M12 5v14M5 12h14" })]),
+        document.createTextNode("Add assignment")
+      ]);
+      itemsList.push(addItemBtn);
+
+      catBody = el("div", { class: "category-body" }, itemsList);
     }
-    main.appendChild(categoryEl);
+
+    main.appendChild(el("section", { class: "category" }, [catHead, catBody]));
   });
 
-  const addCategoryBtn = el("button", { class: "add-category-btn" }, [plusSVG(), " Add category"]);
-  addCategoryBtn.addEventListener("click", () => updateActive(c => { c.categories.push({ id: uid(), name: "New Category", weight: 0, open: true, items: [] }); return c; }));
-  main.appendChild(addCategoryBtn);
+  const addCatBtn = el("button", { class: "add-category-btn", onclick: () => {
+    updateActive(c => { c.categories.push({ id: uid(), name: "New Category", weight: 0, open: true, items: [] }); return c; });
+  }}, [
+    el("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2" }, [el("path", { d: "M12 5v14M5 12h14" })]),
+    document.createTextNode("Add Category")
+  ]);
+  main.appendChild(addCatBtn);
 }
 
-function render() { renderSidebar(); renderMain(); }
 document.getElementById("add-course-btn").addEventListener("click", addCourse);
 </script>
 </body>
