@@ -4,7 +4,7 @@
   "description": "Gradebook with login and per-account grade storage",
   "main": "server.js",
   "type": "commonjs",
-  "scripts": {
+ "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
