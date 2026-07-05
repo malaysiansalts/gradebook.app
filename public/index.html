@@ -3,57 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quantum Gradebook Portal - Next-Gen Console Interface</title>
+  <title>Academic Analytics Console</title>
   <style>
     :root {
-      --bg-space: #05070c;
-      --card-bg: rgba(14, 22, 39, 0.65);
-      --card-border: rgba(59, 130, 246, 0.15);
-      --card-border-glow: rgba(59, 130, 246, 0.3);
-      --brand-primary: #f8fafc;
+      --bg-space: #060913;
+      --card-bg: rgba(15, 23, 42, 0.65);
+      --card-border: rgba(51, 65, 85, 0.5);
       --brand-accent: #3b82f6;
       --brand-neon: #60a5fa;
       --brand-accent-hover: #1d4ed8;
-      --text-main: #f1f5f9;
+      --text-main: #f8fafc;
       --text-muted: #64748b;
       --input-bg: #090e1a;
-      --radius-lg: 16px;
-      --radius-md: 10px;
-      --neon-green: #10b981;
+      --radius-lg: 12px;
+      --radius-md: 8px;
       --neon-red: #ef4444;
-      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
       font-family: var(--font-stack);
       background-color: var(--bg-space);
       background-image: 
-        radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.08), transparent 45%),
-        radial-gradient(circle at 15% 80%, rgba(139, 92, 246, 0.05), transparent 40%);
+        radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.06), transparent 45%),
+        radial-gradient(circle at 15% 80%, rgba(99, 102, 241, 0.04), transparent 40%);
       background-attachment: fixed;
       color: var(--text-main);
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      overflow-x: hidden;
     }
 
-    /* Core Animation Keyframes */
     @keyframes panelEntrance {
-      from { opacity: 0; transform: translateY(16px) scale(0.99); filter: blur(4px); }
-      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
 
     @keyframes toastSlideIn {
-      0% { transform: translate(-50%, -40px); opacity: 0; filter: blur(4px); }
-      12% { transform: translate(-50%, 24px); opacity: 1; filter: blur(0); }
-      88% { transform: translate(-50%, 24px); opacity: 1; filter: blur(0); }
-      100% { transform: translate(-50%, -40px); opacity: 0; filter: blur(4px); }
-    }
-
-    @keyframes energyPulse {
-      0%, 100% { box-shadow: 0 0 15px -3px rgba(59, 130, 246, 0.2); }
-      50% { box-shadow: 0 0 25px 2px rgba(59, 130, 246, 0.4); }
+      0% { transform: translate(-50%, -40px); opacity: 0; }
+      12% { transform: translate(-50%, 24px); opacity: 1; }
+      88% { transform: translate(-50%, 24px); opacity: 1; }
+      100% { transform: translate(-50%, -40px); opacity: 0; }
     }
 
     #toast-notification {
@@ -61,7 +51,7 @@
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(15, 23, 42, 0.9);
       color: #34d399;
       border: 1px solid rgba(16, 185, 129, 0.4);
       backdrop-filter: blur(12px);
@@ -70,15 +60,14 @@
       border-radius: var(--radius-md);
       font-weight: 600;
       font-size: 13px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       z-index: 10000;
       opacity: 0;
       pointer-events: none;
-      box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
     }
     .show-toast { animation: toastSlideIn 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-    /* Auth Screens System */
     .auth-wrapper {
       display: flex;
       justify-content: center;
@@ -97,23 +86,21 @@
       max-width: 400px;
       width: 100%;
       box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-      animation: panelEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .auth-header h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--brand-primary); margin: 0; }
+    .auth-header h2 { font-size: 24px; font-weight: 700; color: var(--text-main); margin: 0; }
     .auth-header p { margin: 6px 0 28px 0; color: var(--text-muted); font-size: 14px; }
 
-    /* Global Typography & Structure */
     .dashboard-wrapper { 
       max-width: 1200px; 
       margin: 40px auto; 
       padding: 0 24px; 
-      animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+      animation: panelEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
     .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
     
-    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
     
-    /* Input Elements System */
     input {
       width: 100%;
       padding: 10px 14px;
@@ -124,20 +111,18 @@
       background-color: var(--input-bg);
       font-size: 14px;
       color: #ffffff;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s ease;
     }
     input:focus { 
       outline: none; 
       border-color: var(--brand-neon); 
-      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
-      background-color: #0d1527;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
     }
 
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type="number"] { -moz-appearance: textfield; }
 
-    /* Custom Stepper Mechanics */
     .stepper-container {
       display: flex;
       align-items: center;
@@ -146,13 +131,12 @@
       border-radius: var(--radius-md);
       margin-bottom: 12px;
       overflow: hidden;
-      transition: border-color 0.2s ease;
     }
-    .stepper-container:focus-within { border-color: var(--brand-neon); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15); }
+    .stepper-container:focus-within { border-color: var(--brand-neon); }
     .stepper-container input { border: none !important; margin-bottom: 0 !important; text-align: center; padding: 10px 4px; background: transparent; }
     
     .stepper-btn {
-      background: rgba(30, 41, 59, 0.5);
+      background: rgba(30, 41, 59, 0.3);
       color: var(--text-main);
       border: none;
       width: 36px;
@@ -163,11 +147,10 @@
       align-items: center;
       justify-content: center;
       user-select: none;
-      transition: all 0.15s ease;
+      transition: background 0.15s;
     }
-    .stepper-btn:hover { background: rgba(59, 130, 246, 0.2); color: var(--brand-neon); }
+    .stepper-btn:hover { background: rgba(59, 130, 246, 0.15); color: var(--brand-neon); }
 
-    /* Premium Custom Dropdowns Layout */
     .vibe-dropdown { position: relative; display: inline-block; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
     .vibe-dropdown-select {
       background-color: var(--input-bg);
@@ -181,30 +164,28 @@
       justify-content: space-between;
       align-items: center;
       user-select: none;
-      transition: all 0.25s ease;
+      transition: border 0.2s ease;
     }
-    .vibe-dropdown-select:hover { border-color: rgba(96, 165, 250, 0.4); }
+    .vibe-dropdown-select:hover { border-color: rgba(96, 165, 250, 0.3); }
     .vibe-dropdown-select::after {
       content: "";
       border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid var(--text-muted);
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%); transition: transform 0.2s ease;
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
     }
     .vibe-dropdown.active .vibe-dropdown-select::after { transform: translateY(-50%) rotate(180deg); }
     .vibe-dropdown-options {
       position: absolute; top: 100%; left: 0; right: 0;
       background-color: #0b111e;
-      border: 1px solid rgba(59, 130, 246, 0.25);
+      border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--radius-md);
       margin-top: 6px; padding: 6px 0; z-index: 1000; display: none;
       max-height: 220px; overflow-y: auto;
-      box-shadow: 0 16px 36px -6px rgba(0,0,0,0.7);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 16px 36px -6px rgba(0,0,0,0.6);
     }
-    .vibe-dropdown-option { padding: 10px 14px; color: var(--text-main); cursor: pointer; font-size: 14px; transition: all 0.15s ease; }
-    .vibe-dropdown-option:hover { background-color: rgba(59, 130, 246, 0.15); color: #ffffff; padding-left: 18px; }
+    .vibe-dropdown-option { padding: 10px 14px; color: var(--text-main); cursor: pointer; font-size: 14px; }
+    .vibe-dropdown-option:hover { background-color: rgba(59, 130, 246, 0.1); color: #ffffff; }
     .vibe-dropdown.active .vibe-dropdown-options { display: block; }
 
-    /* Button Engineering */
     button {
       background: linear-gradient(135deg, var(--brand-accent) 0%, #1d4ed8 100%);
       color: #ffffff;
@@ -214,21 +195,14 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      letter-spacing: 0.3px;
-      box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s ease;
     }
-    button:hover { 
-      transform: translateY(-1.5px); 
-      box-shadow: 0 8px 20px -2px rgba(59, 130, 246, 0.45), 0 0 12px 1px rgba(96, 165, 250, 0.2);
-    }
-    button:active { transform: translateY(0); }
+    button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
     
-    .secondary-btn { background: rgba(30, 41, 59, 0.4); color: var(--text-main); border: 1px solid var(--card-border); width: 100%; margin-top: 10px; box-shadow: none; }
-    .secondary-btn:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255,255,255,0.15); box-shadow: none; color: #ffffff; }
+    .secondary-btn { background: rgba(30, 41, 59, 0.4); color: var(--text-main); border: 1px solid var(--card-border); width: 100%; margin-top: 10px; }
+    .secondary-btn:hover { background: rgba(30, 41, 59, 0.7); color: #ffffff; }
 
-    /* Content Layout Containers */
-    .grid-container { display: grid; grid-template-columns: 1.90fr 1.10fr; gap: 28px; }
+    .grid-container { display: grid; grid-template-columns: 1.95fr 1.05fr; gap: 28px; }
     @media (max-width: 950px) { .grid-container { grid-template-columns: 1fr; gap: 20px; } }
 
     .card { 
@@ -237,98 +211,90 @@
       border-radius: var(--radius-lg); 
       padding: 24px; 
       margin-bottom: 24px; 
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
-      transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
-    .card:hover { border-color: rgba(59, 130, 246, 0.25); }
     
     .card-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
-    .card-header h3 { font-size: 16px; font-weight: 700; color: var(--brand-primary); margin: 0; letter-spacing: -0.2px; }
-    .toggle-icon { color: var(--text-muted); font-size: 13px; font-family: monospace; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+    .card-header h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .toggle-icon { color: var(--text-muted); font-size: 12px; font-family: monospace; }
     
     .card-content { margin-top: 20px; }
     .card.minimized .card-content { display: none !important; }
-    .card.minimized { padding-bottom: 24px; }
 
-    /* Data Layout Dynamic Components */
-    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 36px; gap: 14px; align-items: center; margin-bottom: 10px; animation: panelEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 36px; gap: 14px; align-items: center; margin-bottom: 10px; }
     .row-item-3col input, .row-item-3col .vibe-dropdown, .row-item-3col .stepper-container { margin-bottom: 0; }
     
-    .remove-btn { background: none; color: var(--text-muted); font-size: 14px; border: none; cursor: pointer; text-align: center; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease; box-shadow: none; }
-    .remove-btn:hover { color: var(--neon-red); background: rgba(239, 68, 68, 0.1); transform: rotate(90deg); box-shadow: none; }
+    .remove-btn { background: none; color: var(--text-muted); font-size: 14px; border: none; cursor: pointer; text-align: center; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; }
+    .remove-btn:hover { color: var(--neon-red); background: rgba(239, 68, 68, 0.1); }
     .hidden { display: none !important; }
     
-    /* Matrix Metric Calibration Modules */
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .scale-matrix div { background: rgba(9, 14, 26, 0.6); padding: 10px 6px; border: 1px solid var(--card-border); border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease; }
-    .scale-matrix div:hover { border-color: rgba(59, 130, 246, 0.3); background: rgba(9, 14, 26, 0.9); }
-    .scale-matrix label { margin-bottom: 4px; font-size: 11px; font-weight: 700; color: var(--brand-neon); }
+    .scale-matrix div { background: rgba(9, 14, 26, 0.6); padding: 10px 4px; border: 1px solid var(--card-border); border-radius: var(--radius-md); text-align: center; }
+    .scale-matrix label { margin-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--brand-neon); }
     
     .scale-matrix-field { display: flex; align-items: center; justify-content: center; margin-top: 4px; }
-    .scale-matrix input { margin-bottom: 0; padding: 2px; text-align: center; background: transparent; border: none; font-size: 16px; font-weight: 800; width: 42px; color: #ffffff; }
+    .scale-matrix input { margin-bottom: 0; padding: 2px; text-align: center; background: transparent; border: none; font-size: 15px; font-weight: 700; width: 42px; color: #ffffff; }
     .scale-matrix input:focus { box-shadow: none; background: transparent; }
-    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; font-weight: bold; padding: 0 6px; user-select: none; box-shadow: none; transition: color 0.1s; }
-    .matrix-step-btn:hover { color: #ffffff; transform: none; box-shadow: none; }
+    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 0 6px; user-select: none; }
+    .matrix-step-btn:hover { color: #ffffff; }
 
-    /* Yield Metric Core Matrix Display Module */
     .yield-display-panel {
-      text-align: center; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.18), transparent 70%), #090e1a; 
-      border: 1px solid rgba(59, 130, 246, 0.35); padding: 28px 20px; animation: energyPulse 6s infinite ease-in-out;
+      text-align: center; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12), transparent 75%), #090e1a; 
+      border: 1px solid rgba(59, 130, 246, 0.25); padding: 32px 20px;
     }
   </style>
 </head>
 <body>
 
-  <div id="toast-notification">Matrix configuration committed successfully!</div>
+  <div id="toast-notification">Changes successfully committed to ledger.</div>
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
       <div class="auth-header">
-        <h2 id="auth-title">Create Account</h2>
-        <p>Access Local Grade Analytics Terminal</p>
+        <h2 id="auth-title">Authorized Portal Access</h2>
+        <p>Establish terminal session to view tracking database</p>
       </div>
-      <div id="auth-error" style="color: var(--neon-red); font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px; letter-spacing: 0.3px;" class="hidden">Authentication processing error. Check parameters.</div>
+      <div id="auth-error" style="color: var(--neon-red); font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px;" class="hidden">Access denied. Verify user credentials.</div>
       <form onsubmit="event.preventDefault(); executeAuth();">
-        <label>Email Address</label>
-        <input type="email" id="auth-email" placeholder="you@academy.com" required>
-        <label>Password</label>
+        <label>Identity Email</label>
+        <input type="email" id="auth-email" placeholder="user@domain.com" required>
+        <label>Security Phrase</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%; margin-top: 8px; padding: 12px; font-size: 14px;">Authenticate Entry</button>
+        <button type="submit" style="width:100%; margin-top: 8px; padding: 12px; font-size: 14px;">Verify Credentials</button>
       </form>
-      <button class="secondary-btn" onclick="toggleAuth()" style="padding: 10px;">Switch Login / Sign Up</button>
+      <button class="secondary-btn" onclick="toggleAuth()" style="padding: 10px;">Switch Action Mode</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
     <div class="top-nav">
       <div>
-        <h1 style="margin:0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Workspace Matrix</h1>
-        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; font-weight: 500; margin:4px 0 0 0; letter-spacing: 0.3px;"></p>
+        <h1 style="margin:0; font-size: 24px; font-weight: 700; letter-spacing: -0.3px;">Academic Ledger</h1>
+        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; margin:4px 0 0 0; font-family: monospace;"></p>
       </div>
-      <button onclick="logOutUser()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px; box-shadow: none;">Disconnect Session</button>
+      <button onclick="logOutUser()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px;">Terminate Session</button>
     </div>
 
     <div class="card" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; padding: 16px;">
       <div style="flex: 1.2; min-width: 180px;">
-        <label>Active Course</label>
+        <label>Target Course Profile</label>
         <div class="vibe-dropdown" id="class-dropdown-wrapper">
-          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Course</div>
+          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Course Profile</div>
           <div class="vibe-dropdown-options" id="class-dropdown-options"></div>
         </div>
       </div>
       <div style="flex: 1; min-width: 180px;">
-        <label>Rename Course</label>
+        <label>Modify Label</label>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="rename-class-input" style="margin-bottom:0;">
-          <button onclick="renameCurrentSubject()" style="background: #1e293b; box-shadow: none;">Rename</button>
+          <button onclick="renameCurrentSubject()" style="background: #1e293b;">Apply</button>
         </div>
       </div>
       <div style="display: flex; gap: 8px; align-items: flex-end;">
-        <button onclick="deleteCurrentClassChannel()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; box-shadow: none; white-space: nowrap;">Delete Class</button>
-        <input type="text" id="new-class-input" placeholder="Code (e.g., PHY2)" style="width:130px; margin-bottom:0;">
-        <button onclick="createNewClassChannel()">+ Add Class</button>
+        <button onclick="deleteCurrentClassChannel()" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; white-space: nowrap;">Purge Profile</button>
+        <input type="text" id="new-class-input" placeholder="Course Code" style="width:130px; margin-bottom:0;">
+        <button onclick="createNewClassChannel()">+ Create Profile</button>
       </div>
     </div>
 
@@ -336,21 +302,21 @@
       <div>
         <div class="card" id="card-weights">
           <div class="card-header" onclick="toggleCardMinimize('card-weights')">
-            <h3>1. Category Weights Assignment</h3>
+            <h3>1. Distribution Weight Schema</h3>
             <span class="toggle-icon">[–]</span>
           </div>
           <div class="card-content">
             <div id="category-rows-hook"></div>
-            <button onclick="appendBlankCategoryRow()" style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); margin-top: 10px; padding: 8px 16px; font-size: 12px; box-shadow: none;">+ Add Category</button>
+            <button onclick="appendBlankCategoryRow()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); margin-top: 10px; padding: 8px 16px; font-size: 12px;">+ Add Category Component</button>
           </div>
         </div>
 
         <div class="card" id="card-logs">
           <div class="card-header" onclick="toggleCardMinimize('card-logs')">
             <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 20px;">
-              <h3>2. Log Entries</h3>
-              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:180px; margin-bottom:0;" onclick="event.stopPropagation()">
-                <div class="vibe-dropdown-select" id="log-filter-label">Show All</div>
+              <h3>2. Performance Ledger Entries</h3>
+              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:190px; margin-bottom:0;" onclick="event.stopPropagation()">
+                <div class="vibe-dropdown-select" id="log-filter-label">All Categories</div>
                 <div class="vibe-dropdown-options" id="log-filter-options"></div>
               </div>
             </div>
@@ -359,21 +325,21 @@
           <div class="card-content">
             <div id="assignment-rows-hook"></div>
             <div style="display:flex; gap:12px; margin-top:16px;">
-              <button onclick="appendBlankAssignmentRow()" style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); padding: 8px 16px; font-size: 12px; box-shadow: none;">+ Add Assignment</button>
-              <button onclick="saveAllCurrentDataToServer()" style="padding: 8px 18px; font-size: 12px;">Save Configuration Matrix</button>
+              <button onclick="appendBlankAssignmentRow()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px; font-size: 12px;">+ Add Entry</button>
+              <button onclick="saveAllCurrentDataToServer()" style="padding: 8px 18px; font-size: 12px;">Commit Changes</button>
             </div>
           </div>
         </div>
 
         <div class="card" id="card-calc">
           <div class="card-header" onclick="toggleCardMinimize('card-calc')">
-            <h3>3. Target Test/Exam Grade Needed Calculator</h3>
+            <h3>3. Target Requirement Forecasting</h3>
             <span class="toggle-icon">[–]</span>
           </div>
           <div class="card-content">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
               <div>
-                <label>Target Class Grade %</label>
+                <label>Objective Grade %</label>
                 <div class="stepper-container">
                   <button class="stepper-btn" onclick="stepInputValue('target-class-grade', -1)">−</button>
                   <input type="number" id="target-class-grade" value="90">
@@ -381,30 +347,30 @@
                 </div>
               </div>
               <div>
-                <label>Upcoming Test Category</label>
+                <label>Evaluation Group</label>
                 <div class="vibe-dropdown" id="calc-cat-wrapper">
-                  <div class="vibe-dropdown-select" id="calc-cat-label">Select Cat</div>
+                  <div class="vibe-dropdown-select" id="calc-cat-label">Select Category</div>
                   <div class="vibe-dropdown-options" id="calc-cat-options"></div>
                 </div>
               </div>
               <div style="display:flex; align-items:flex-end;">
-                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 10px 0;">Calculate Grade</button>
+                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 10px 0;">Run Forecast</button>
               </div>
             </div>
-            <p id="target-result-badge" style="color: var(--brand-neon); font-weight:700; text-align:center; margin-top:16px; font-size: 13px; letter-spacing: 0.2px;"></p>
+            <p id="target-result-badge" style="color: var(--brand-neon); font-weight:600; text-align:center; margin-top:16px; font-size: 13px;"></p>
           </div>
         </div>
       </div>
 
       <div>
         <div class="card yield-display-panel">
-          <span style="color: var(--text-muted); font-size:11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">Weighted Matrix Yield</span>
-          <h1 id="score-pct-badge" style="font-size: 54px; margin: 8px 0; color:#ffffff; font-weight: 900; letter-spacing: -1px;">0.0%</h1>
-          <div id="score-letter-badge" style="font-weight:900; font-size: 22px; color: var(--brand-neon); letter-spacing: 1px;">F</div>
+          <span style="color: var(--text-muted); font-size:11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Weighted Aggregate Yield</span>
+          <h1 id="score-pct-badge" style="font-size: 50px; margin: 8px 0; color:#ffffff; font-weight: 700; letter-spacing: -1px;">0.0%</h1>
+          <div id="score-letter-badge" style="font-weight:700; font-size: 20px; color: var(--brand-neon);">F</div>
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom: 16px;">Grading Threshold Mapping Floors</h3>
+          <h3 style="margin-bottom: 16px; font-size: 13px;">Grading Scale Matrix Thresholds</h3>
           <div class="scale-matrix">
             <div><label>A+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',1)">+</button></div></div>
             <div><label>A</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',1)">+</button></div></div>
@@ -420,7 +386,7 @@
             <div><label>D-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',1)">+</button></div></div>
             <div style="grid-column: span 3;"><label>F Floor</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:120px;"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',1)">+</button></div></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); margin-top:16px; padding: 10px 0; box-shadow: none;">Sync Calibration Scale</button>
+          <button onclick="saveScaleToServer()" style="width:100%; background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); margin-top:16px; padding: 10px 0;">Sync Grading Scale</button>
         </div>
       </div>
     </div>
@@ -453,6 +419,7 @@
 
     function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
       const wrapper = document.getElementById(wrapperId);
+      if(!wrapper) return;
       const label = wrapper.querySelector('.vibe-dropdown-select');
       const container = wrapper.querySelector('.vibe-dropdown-options');
       
@@ -502,7 +469,7 @@
       const res = await fetch('/api/me');
       if(res.ok) {
         const data = await res.json();
-        document.getElementById('current-user-tag').innerText = `CON_LINK // ${data.email.toUpperCase()}`;
+        document.getElementById('current-user-tag').innerText = `SESSION // ${data.email.toUpperCase()}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         await loadBackendData();
@@ -540,8 +507,8 @@
     function populateClassDropdown() {
       const keys = Object.keys(globalClasses);
       if(keys.length === 0) {
-        globalClasses["General Class"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
-        keys.push("General Class");
+        globalClasses["General Course"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
+        keys.push("General Course");
       }
       if (!activeClassName || !globalClasses[activeClassName]) activeClassName = keys[0];
       
@@ -561,9 +528,9 @@
     function populateCategoryFilters() {
       const currentClass = globalClasses[activeClassName] || { categories: [] };
       
-      const filterOpts = [{ label: "Show All Categories", value: "ALL" }].concat(currentClass.categories.map(c => ({ label: c.name, value: c.name })));
+      const filterOpts = [{ label: "All Categories", value: "ALL" }].concat(currentClass.categories.map(c => ({ label: c.name, value: c.name })));
       if (!filterOpts.some(o => o.value === activeFilterValue)) activeFilterValue = "ALL";
-      const currentFilterLabel = filterOpts.find(o => o.value === activeFilterValue)?.label || "Show All Categories";
+      const currentFilterLabel = filterOpts.find(o => o.value === activeFilterValue)?.label || "All Categories";
       
       setupCustomDropdown('log-filter-wrapper', currentFilterLabel, filterOpts, (val) => {
         activeFilterValue = val;
@@ -575,7 +542,7 @@
         if (!calcOpts.some(o => o.value === activeCalcCategory)) activeCalcCategory = calcOpts[0].value;
         setupCustomDropdown('calc-cat-wrapper', activeCalcCategory, calcOpts, (val) => { activeCalcCategory = val; });
       } else {
-        setupCustomDropdown('calc-cat-wrapper', "None Available", [], () => {});
+        setupCustomDropdown('calc-cat-wrapper', "No Categories", [], () => {});
       }
     }
 
@@ -598,14 +565,30 @@
         const rowId = `cat-weight-step-${index}`;
         catHook.innerHTML += `
           <div class="row-item-3col cat-data-row">
-            <input type="text" value="${cat.name}" class="cat-name-input" oninput="readUiStateIntoMemory()">
+            <input type="text" value="${cat.name}" class="cat-name-input" data-index="${index}">
             <div class="stepper-container">
               <button class="stepper-btn" onclick="stepInputValue('${rowId}', -1)">−</button>
-              <input type="number" value="${cat.weight}" id="${rowId}" class="cat-weight-input" oninput="readUiStateIntoMemory()">
+              <input type="number" value="${cat.weight}" id="${rowId}" class="cat-weight-input" data-index="${index}">
               <button class="stepper-btn" onclick="stepInputValue('${rowId}', 1)">+</button>
             </div>
             <button class="remove-btn" onclick="globalClasses[activeClassName].categories.splice(${index},1); populateCategoryFilters(); buildUiElementsFromMemory()">✕</button>
           </div>`;
+      });
+
+      // Add fresh input hooks explicitly targeted to index boundaries to prevent cross-input bleeding
+      document.querySelectorAll('.cat-name-input').forEach(input => {
+        input.oninput = () => {
+          const idx = parseInt(input.getAttribute('data-index'));
+          globalClasses[activeClassName].categories[idx].name = input.value;
+          runCalculations();
+        };
+      });
+      document.querySelectorAll('.cat-weight-input').forEach(input => {
+        input.oninput = () => {
+          const idx = parseInt(input.getAttribute('data-index'));
+          globalClasses[activeClassName].categories[idx].weight = parseFloat(input.value) || 0;
+          runCalculations();
+        };
       });
 
       const assignHook = document.getElementById('assignment-rows-hook');
@@ -617,13 +600,13 @@
         const rowId = `asm-row-dropdown-${index}`;
         assignHook.innerHTML += `
           <div class="row-item-3col asm-data-row" data-index="${index}">
-            <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
+            <input type="text" value="${asm.name}" class="asm-name-input" data-index="${index}">
             <div style="display:flex; gap: 10px;">
               <div class="vibe-dropdown" id="${rowId}">
                 <div class="vibe-dropdown-select">${asm.category}</div>
                 <div class="vibe-dropdown-options"></div>
               </div>
-              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()" style="text-align:center; width:90px;">
+              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" data-index="${index}" style="text-align:center; width:90px;">
             </div>
             <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${index},1); buildUiElementsFromMemory()">✕</button>
           </div>`;
@@ -632,30 +615,53 @@
           const opts = targetClass.categories.map(c => ({ label: c.name, value: c.name }));
           setupCustomDropdown(rowId, asm.category, opts, (val) => {
             globalClasses[activeClassName].assignments[index].category = val;
-            readUiStateIntoMemory();
+            runCalculations();
           });
         }, 0);
       });
+
+      document.querySelectorAll('.asm-name-input').forEach(input => {
+        input.oninput = () => {
+          const idx = parseInt(input.getAttribute('data-index'));
+          globalClasses[activeClassName].assignments[idx].name = input.value;
+        };
+      });
+      document.querySelectorAll('.asm-score-input').forEach(input => {
+        input.oninput = () => {
+          const idx = parseInt(input.getAttribute('data-index'));
+          globalClasses[activeClassName].assignments[idx].scoreStr = input.value;
+          runCalculations();
+        };
+      });
+
       runCalculations();
     }
 
     function readUiStateIntoMemory() {
       const currentClass = globalClasses[activeClassName];
       if(!currentClass) return;
-      document.querySelectorAll('.cat-data-row').forEach((row, idx) => {
-        if(currentClass.categories[idx]) {
-          currentClass.categories[idx].name = row.querySelector('.cat-name-input').value;
-          currentClass.categories[idx].weight = parseFloat(row.querySelector('.cat-weight-input').value) || 0;
+      document.querySelectorAll('.cat-data-row').forEach((row) => {
+        const nameEl = row.querySelector('.cat-name-input');
+        const weightEl = row.querySelector('.cat-weight-input');
+        if (nameEl && weightEl) {
+          const idx = parseInt(nameEl.getAttribute('data-index'));
+          if (currentClass.categories[idx]) {
+            currentClass.categories[idx].name = nameEl.value;
+            currentClass.categories[idx].weight = parseFloat(weightEl.value) || 0;
+          }
         }
       });
       document.querySelectorAll('.asm-data-row').forEach(row => {
-        const targetIdx = parseInt(row.getAttribute('data-index'));
-        if(currentClass.assignments[targetIdx]) {
-          currentClass.assignments[targetIdx].name = row.querySelector('.asm-name-input').value;
-          currentClass.assignments[targetIdx].scoreStr = row.querySelector('.asm-score-input').value;
+        const nameEl = row.querySelector('.asm-name-input');
+        const scoreEl = row.querySelector('.asm-score-input');
+        if (nameEl && scoreEl) {
+          const idx = parseInt(nameEl.getAttribute('data-index'));
+          if (currentClass.assignments[idx]) {
+            currentClass.assignments[idx].name = nameEl.value;
+            currentClass.assignments[idx].scoreStr = scoreEl.value;
+          }
         }
       });
-      runCalculations();
     }
 
     function runCalculations() {
@@ -708,7 +714,7 @@
       const requiredCatAvg = ((targetGrade * (totalWeight / 100)) - currentContribution) / (targetCatWeight / 100);
       let requiredTestScore = matches.length === 0 ? requiredCatAvg : (requiredCatAvg * (matches.length + 1)) - matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0);
 
-      document.getElementById('target-result-badge').innerText = requiredTestScore <= 0 ? "Goal met! You can score a 0.0% safely." : `Required score on next evaluation: ${requiredTestScore.toFixed(1)}%`;
+      document.getElementById('target-result-badge').innerText = requiredTestScore <= 0 ? "Target benchmark reached." : `Required score on next evaluation: ${requiredTestScore.toFixed(1)}%`;
     }
 
     async function syncDataWithDatabase() {
@@ -728,10 +734,10 @@
     }
 
     function appendBlankCategoryRow() { globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 }); populateCategoryFilters(); buildUiElementsFromMemory(); }
-    function appendBlankAssignmentRow() { const cats = globalClasses[activeClassName].categories; globalClasses[activeClassName].assignments.push({ name: "New Item", category: cats.length > 0 ? cats[0].name : "Exams", scoreStr: "100" }); buildUiElementsFromMemory(); }
+    function appendBlankAssignmentRow() { const cats = globalClasses[activeClassName].categories; globalClasses[activeClassName].assignments.push({ name: "New Entry Assignment", category: cats.length > 0 ? cats[0].name : "Exams", scoreStr: "100" }); buildUiElementsFromMemory(); }
     function createNewClassChannel() { const name = document.getElementById('new-class-input').value.trim(); if(name) { globalClasses[name] = { categories: [{ name: "Exams", weight: 100 }], assignments: [] }; activeClassName = name; populateClassDropdown(); } }
     function renameCurrentSubject() { const n = document.getElementById('rename-class-input').value.trim(); if(n && !globalClasses[n]) { globalClasses[n] = globalClasses[activeClassName]; delete globalClasses[activeClassName]; activeClassName = n; populateClassDropdown(); } }
-    async function deleteCurrentClassChannel() { if(confirm("Delete class?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
+    async function deleteCurrentClassChannel() { if(confirm("Purge course profile permanently?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
     async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); showToast(); }
 
     window.onload = checkSession;
