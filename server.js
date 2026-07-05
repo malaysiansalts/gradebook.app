@@ -54,9 +54,68 @@ function defaultCourse() {
   };
 }
 
-// ---------- middleware ----------
+// ---------- middleware & global animations inject ----------
 app.use(express.json());
 app.use(cookieParser());
+
+// This global middleware hooks into all HTML requests to dynamically inject 
+// professional entrance animations, card movements, and button states app-wide.
+app.use((req, res, next) => {
+  const send = res.send;
+  res.send = function (body) {
+    if (typeof body === 'string' && body.includes('<head>') && !body.includes('/* Global Animations Flag */')) {
+      const animationStyleBlock = `
+        <head>
+        <style>
+          /* 1. Global Page Entrance Transition */
+          body {
+            animation: appEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          
+          @keyframes appEntrance {
+            from { opacity: 0; transform: scale(0.99); filter: blur(4px); }
+            to { opacity: 1; transform: scale(1); filter: blur(0); }
+          }
+
+          /* 2. Animate all Containers, Boxes, List Items and Cards */
+          div, form, section, .card, li, tr {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: componentSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+          }
+
+          @keyframes componentSlideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+
+          /* 3. Smooth Micro-interactions on Buttons & Inputs */
+          button, input, select, textarea, a {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          }
+
+          button:hover, a:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          }
+
+          button:active, a:active {
+            transform: translateY(0px) scale(0.98);
+          }
+
+          input:focus, select:focus {
+            transform: scale(1.01);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+          }
+        </style>
+      `;
+      body = body.replace('<head>', animationStyleBlock);
+    }
+    send.call(this, body);
+  };
+  next();
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 
 // Route to handle browser automatic requests for favicon/tab icon
@@ -85,7 +144,6 @@ function isAdminEmail(email) {
   return !!adminEmail && email === adminEmail;
 }
 
-// Strict backend guard for admin-only data endpoints
 function requireAdmin(req, res, next) {
   const user = db.users.find((u) => u.id === req.userId);
   if (!user || !isAdminEmail(user.email)) {
@@ -123,7 +181,7 @@ app.post("/api/register", (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = body = req.body || {};
+  const { email, password } = req.body || {};
   const normalizedEmail = (email || "").trim().toLowerCase();
   const user = db.users.find((u) => u.email === normalizedEmail);
   if (!user || !bcrypt.compareSync(password || "", user.passwordHash)) {
@@ -165,8 +223,7 @@ app.put("/api/courses", requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// ---------- admin infrastructure features ----------
-
+// ---------- admin infrastructure dashboard ----------
 app.get("/api/admin/dashboard", requireAuth, requireAdmin, (req, res) => {
   const cleanUsers = db.users.map(({ id, email }) => ({ id, email }));
   res.json({
@@ -185,22 +242,75 @@ app.get("/admin", (req, res) => {
       <title>Gradebooks - Developer Console</title>
       <link rel="icon" type="image/png" href="/favicon.ico">
       <style>
-        body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+          background: #0f172a; 
+          color: #f8fafc; 
+          padding: 40px;
+          margin: 0;
+        }
+        
+        @keyframes pulseGlow {
+          0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+          70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
         h1 { color: #38bdf8; margin-bottom: 5px; }
-        .card { background: #1e293b; border-radius: 8px; padding: 20px; margin-top: 20px; border: 1px solid #334155; }
-        pre { background: #020617; padding: 15px; border-radius: 6px; overflow-x: auto; color: #4ade80; border: 1px solid #1e293b; }
-        .error { color: #f87171; background: #451a03; padding: 15px; border-radius: 6px; display: none; }
+        p.subtitle { margin-top: 0; color: #94a3b8; }
+        
+        .card { 
+          background: #1e293b; 
+          border-radius: 12px; 
+          padding: 24px; 
+          margin-top: 20px; 
+          border: 1px solid #334155;
+        }
+
+        .status-dot {
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          background: #4ade80;
+          border-radius: 50%;
+          margin-right: 6px;
+          animation: pulseGlow 2s infinite;
+          vertical-align: middle;
+        }
+
+        pre { 
+          background: #020617; 
+          padding: 18px; 
+          border-radius: 8px; 
+          overflow-x: auto; 
+          color: #4ade80; 
+          border: 1px solid #1e293b;
+          font-family: Menlo, Monaco, monospace;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .error { 
+          color: #f87171; 
+          background: #451a03; 
+          padding: 15px; 
+          border-radius: 6px; 
+          display: none;
+          border: 1px solid #78350f;
+        }
       </style>
     </head>
     <body>
       <h1>Developer Console</h1>
-      <p>System Variable Environment Target: <strong>${process.env.ADMIN_EMAIL || 'UNSET'}</strong></p>
+      <p class="subtitle">System Variable Environment Target: <strong>${process.env.ADMIN_EMAIL || 'UNSET'}</strong></p>
+      
       <div id="error-box" class="error"></div>
+      
       <div id="dashboard-content" style="display:none;">
         <div class="card">
           <h3>System Performance</h3>
-          <p>Database Status: 🟢 Connected</p>
-          <p>Active Users Stored: <span id="user-count">0</span></p>
+          <p>Database Status: <span class="status-dot"></span> Connected</p>
+          <p>Active Users Stored: <strong style="color: #38bdf8;" id="user-count">0</strong></p>
         </div>
         <div class="card">
           <h3>App Database Dump (db.json payload)</h3>
@@ -210,17 +320,22 @@ app.get("/admin", (req, res) => {
 
       <script>
         async function loadMetrics() {
-          const res = await fetch('/api/admin/dashboard');
-          if (!res.ok) {
-            const errData = await res.json();
-            document.getElementById('error-box').innerText = "Access Forbidden: " + (errData.error || "You are not designated as ADMIN_EMAIL in Railway variables.");
+          try {
+            const res = await fetch('/api/admin/dashboard');
+            if (!res.ok) {
+              const errData = await res.json();
+              document.getElementById('error-box').innerText = "Access Forbidden: " + (errData.error || "You are not designated as ADMIN_EMAIL in Railway variables.");
+              document.getElementById('error-box').style.display = 'block';
+              return;
+            }
+            const data = await res.json();
+            document.getElementById('user-count').innerText = data.totalUsersCount;
+            document.getElementById('db-dump').innerText = JSON.stringify(data, null, 2);
+            document.getElementById('dashboard-content').style.display = 'block';
+          } catch(e) {
+            document.getElementById('error-box').innerText = "Connection lost or server is offline.";
             document.getElementById('error-box').style.display = 'block';
-            return;
           }
-          const data = await res.json();
-          document.getElementById('user-count').innerText = data.totalUsersCount;
-          document.getElementById('db-dump').innerText = JSON.stringify(data, null, 2);
-          document.getElementById('dashboard-content').style.display = 'block';
         }
         loadMetrics();
       </script>
