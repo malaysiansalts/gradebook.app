@@ -17,14 +17,18 @@ app.use(session({
   cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
 }));
 
+// Bulletproof database reading - prevents all JSON startup crashes
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) {
       fs.writeFileSync(DB_FILE, JSON.stringify({ users: {} }, null, 2));
+      return { users: {} };
     }
-    const data = fs.readFileSync(DB_FILE, 'utf8');
-    return JSON.parse(data || '{"users":{}}');
+    const data = fs.readFileSync(DB_FILE, 'utf8').trim();
+    if (!data) return { users: {} };
+    return JSON.parse(data);
   } catch (e) {
+    console.error("Database reading error encountered. Resetting memory state safely.");
     return { users: {} };
   }
 }
