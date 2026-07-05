@@ -14,7 +14,7 @@ app.use(session({
   secret: 'gradebook-secret-key-12345',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 } // 1 week
+  cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
 }));
 
 function readDB() {
@@ -28,37 +28,22 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Auth Routes
 app.post('/api/register', (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
-    
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
-    
-    if (db.users[normalizedEmail]) {
-      return res.status(400).json({ error: "Account already exists" });
-    }
+    if (db.users[normalizedEmail]) return res.status(400).json({ error: "Account already exists" });
     
     db.users[normalizedEmail] = { 
       password, 
       courses: [
-        { name: "Homework", weight: 20, currentAvg: 90, weightCompleted: 15, weightRemaining: 5 },
-        { name: "Exams", weight: 50, currentAvg: 85, weightCompleted: 25, weightRemaining: 25 },
-        { name: "Quizzes", weight: 20, currentAvg: 88, weightCompleted: 10, weightRemaining: 10 },
-        { name: "Participation", weight: 10, currentAvg: 100, weightCompleted: 10, weightRemaining: 0 }
+        { name: "Homework", weight: 20, currentAvg: 90, weightCompleted: 15, weightRemaining: 5 }
       ],
-      gradingScale: {
-        "Aplus": 97, "A": 93, "Aminus": 90,
-        "Bplus": 87, "B": 83, "Bminus": 80,
-        "Cplus": 77, "C": 73, "Cminus": 70,
-        "Dplus": 67, "D": 63, "Dminus": 60,
-        "F": 0
-      }
+      gradingScale: { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 }
     };
     writeDB(db);
-    
     req.session.userEmail = normalizedEmail;
     res.json({ email: normalizedEmail });
   } catch (err) { next(err); }
@@ -69,33 +54,20 @@ app.post('/api/login', (req, res, next) => {
     const { email, password } = req.body;
     const db = readDB();
     const normalizedEmail = email.toLowerCase().trim();
-    
     const user = db.users[normalizedEmail];
-    if (!user || user.password !== password) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-    
+    if (!user || user.password !== password) return res.status(401).json({ error: "Invalid email or password" });
     req.session.userEmail = normalizedEmail;
     res.json({ email: normalizedEmail });
   } catch (err) { next(err); }
 });
 
-app.post('/api/logout', (req, res) => {
-  req.session.destroy();
-  res.json({ success: true });
-});
+app.post('/api/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
+app.get('/api/me', (req, res) => { if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" }); res.json({ email: req.session.userEmail }); });
 
-app.get('/api/me', (req, res) => {
-  if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
-  res.json({ email: req.session.userEmail });
-});
-
-// User Configurations & Courses API
 app.get('/api/userdata', (req, res) => {
   if (!req.session.userEmail) return res.status(401).json({ error: "Not logged in" });
   const db = readDB();
-  const user = db.users[req.session.userEmail];
-  res.json({ courses: user.courses || [], gradingScale: user.gradingScale });
+  res.json({ courses: db.users[req.session.userEmail].courses || [], gradingScale: db.users[req.session.userEmail].gradingScale });
 });
 
 app.put('/api/userdata', (req, res) => {
