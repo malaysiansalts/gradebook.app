@@ -481,7 +481,6 @@
       letter-spacing: -0.2px;
     }
 
-    /* Isolated Target Component Base State */
     .toggle-icon {
       color: var(--text-dark);
       font-size: 13px;
@@ -490,8 +489,6 @@
       border-radius: var(--radius-sm);
       transition: var(--transition-smooth);
     }
-
-    /* Trigger hover color shifts only when mouse is directly touching the icon element */
     .toggle-icon:hover {
       color: var(--text-primary) !important;
       background: rgba(255,255,255,0.12) !important;
@@ -955,6 +952,7 @@
       setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
         activeClassName = val;
         document.getElementById('rename-class-input').value = val;
+        activeFilterValue = "ALL"; // Reset filter on switch
         rebuildFilteringSelectors();
         generateInteractiveWorkspaceElements();
       });
@@ -988,7 +986,7 @@
     }
 
     /* ----------------------------------------------------
-       ISOLATED TABULAR DOM RENDERING ENGINE
+       DOM RENDERING CHANNELS
        ---------------------------------------------------- */
     function generateCategoryTableUI() {
       const currentClassData = globalClasses[activeClassName] || { categories: [], assignments: [] };
@@ -1045,8 +1043,18 @@
        ---------------------------------------------------- */
     function updateCategoryData(index, field, value) {
       if(!globalClasses[activeClassName]) return;
+      
+      const oldName = globalClasses[activeClassName].categories[index].name;
       if(field === 'weight') value = parseFloat(value) || 0;
       globalClasses[activeClassName].categories[index][field] = value;
+      
+      // If we updated a category name, cascade the change to all linked assignments
+      if(field === 'name') {
+        globalClasses[activeClassName].assignments.forEach(asm => {
+          if(asm.category === oldName) asm.category = value;
+        });
+        rebuildFilteringSelectors();
+      }
       calculateCurrentRunningGrades();
     }
 
@@ -1091,7 +1099,9 @@
       globalClasses[name] = { categories: [{name:"Tests", weight:60}], assignments: [] };
       activeClassName = name;
       input.value = '';
-      rebuildCourseProfileDropdownSelection();
+      
+      // Persist to DB immediately so the list isn't lost on refresh
+      pushDatabasePayloadToRailway();
     }
 
     function renameActiveSubject() {
@@ -1102,21 +1112,13 @@
       delete globalClasses[activeClassName];
       activeClassName = name;
       
-      const keys = Object.keys(globalClasses);
-      const optList = keys.map(k => ({ label: k, value: k }));
-      setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
-        activeClassName = val;
-        document.getElementById('rename-class-input').value = val;
-        rebuildFilteringSelectors();
-        generateInteractiveWorkspaceElements();
-      });
+      pushDatabasePayloadToRailway();
     }
 
     function deleteActiveCourseChannel() {
       delete globalClasses[activeClassName];
       activeClassName = "";
-      rebuildCourseProfileDropdownSelection();
-      renderStatusToastAlert();
+      pushDatabasePayloadToRailway();
     }
 
     function calculateCurrentRunningGrades() {
@@ -1214,20 +1216,32 @@
       calculateCurrentRunningGrades();
     }
 
+    // Consolidated Core API Persistence Functions
+    async function pushDatabasePayloadToRailway() {
+      const res = await fetch('/api/userdata', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classes: globalClasses, gradingScale: globalScale })
+      });
+      if(res.ok) {
+        renderStatusToastAlert();
+        rebuildCourseProfileDropdownSelection();
+      }
+    }
+
     async function saveWorkspaceStateToDatabase() {
-      renderStatusToastAlert();
+      await pushDatabasePayloadToRailway();
     }
 
     async function saveGradingScaleThreshToDB() {
       pullUiStateDataToMemory();
-      renderStatusToastAlert();
+      await pushDatabasePayloadToRailway();
     }
 
     window.onload = () => {
       executeVerificationSessionValidation().catch(() => {
-        document.getElementById('auth-view').classList.add('hidden');
-        document.getElementById('app-view').classList.remove('hidden');
-        fetchUserDataPayloadFromDB();
+        document.getElementById('auth-view').classList.remove('hidden');
+        document.getElementById('app-view').classList.add('hidden');
       });
     };
   </script>
