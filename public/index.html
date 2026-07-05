@@ -3,190 +3,471 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradebook Application</title>
+  <title>Gradebook — Premium Academic Tracking</title>
   <style>
-    body { font-family: system-ui, sans-serif; background: #faf8f5; color: #333; margin: 0; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    h2, h3 { color: #732626; }
-    .card { background: #fffcf9; border: 1px solid #eee; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
-    label { display: block; margin: 10px 0 5px; font-weight: bold; }
-    input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    button { background: #732626; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-    button:hover { background: #5c1e1e; }
-    .scale-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    #drop-zone { border: 2px dashed #732626; padding: 30px; text-align: center; border-radius: 8px; background: #fffdfb; margin-bottom: 20px; transition: 0.2s; }
-    #drop-zone.drag-active { background: #f0e6e6; border-color: #5c1e1e; }
-    .auth-box { max-width: 400px; margin: 100px auto; }
-    .hidden { display: none; }
+    :root {
+      --bg-cream: #faf8f5;
+      --burgundy: #732626;
+      --burgundy-hover: #5c1e1e;
+      --text-dark: #2c2523;
+      --card-bg: #ffffff;
+      --border-color: #eae1d8;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--text-dark);
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Container Utilities */
+    .auth-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(115, 38, 38, 0.04);
+    }
+
+    .dashboard-wrapper {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* Typography & Branding */
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .brand-icon {
+      background: var(--burgundy);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--burgundy);
+      margin: 0;
+    }
+
+    h1, h2, h3, h4 {
+      color: var(--burgundy);
+      margin-top: 0;
+    }
+
+    /* Forms & Inputs */
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-sizing: border-box;
+      background-color: #fdfcfb;
+      font-size: 15px;
+      transition: border 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--burgundy);
+    }
+
+    button {
+      background: var(--burgundy);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: var(--burgundy-hover);
+    }
+
+    .secondary-btn {
+      background: none;
+      color: #666;
+      border: 1px solid var(--border-color);
+      margin-top: 10px;
+    }
+    .secondary-btn:hover {
+      background: #f5f0eb;
+    }
+
+    /* Grid Layouts */
+    .grid-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+    }
+
+    @media (max-width: 850px) {
+      .grid-container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* Scale Adjustments Grid */
+    .scale-matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .scale-matrix div {
+      text-align: center;
+    }
+    .scale-matrix label {
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+    .scale-matrix input {
+      padding: 8px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    /* Drop Zone Style */
+    #drop-zone {
+      border: 2px dashed var(--burgundy);
+      padding: 30px 20px;
+      text-align: center;
+      border-radius: 12px;
+      background: #fdfbfa;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-bottom: 30px;
+    }
+    #drop-zone.drag-active {
+      background: #f4ebe8;
+      border-color: var(--burgundy-hover);
+    }
+
+    /* Course Breakdown Elements */
+    .section-card {
+      background: #fdfcfb;
+      border-left: 4px solid var(--burgundy);
+      padding: 16px;
+      border-radius: 4px 8px 8px 4px;
+      margin-bottom: 16px;
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .section-meta {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .target-output {
+      font-weight: 700;
+      color: var(--burgundy);
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div id="auth-view" class="container auth-box">
-    <h2>Gradebook Auth</h2>
-    <label>Email</label>
-    <input type="email" id="auth-email" placeholder="email@domain.com">
-    <label>Password</label>
-    <input type="password" id="auth-password" placeholder="••••••••">
-    <button onclick="handleAuth('register')" style="margin-bottom: 10px;">Sign Up</button>
-    <button onclick="handleAuth('login')" style="background: #555;">Log In</button>
+  <div id="auth-view" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="brand-header">
+        <div class="brand-icon">Graduation Cap🎓</div>
+        <h2 class="brand-title">Gradebook</h2>
+      </div>
+      <h3 id="auth-title">Create your account</h3>
+      <p id="auth-subtitle" style="color: #666; margin-top: -10px; font-size: 14px;">Track grades smoothly across every device.</p>
+      
+      <div id="auth-error" style="color: var(--burgundy); font-weight: 600; margin-bottom: 15px;" class="hidden">Something went wrong.</div>
+      
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="Malaysiansalts@gmail.com">
+      
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••••••">
+      
+      <button id="primary-auth-btn" onclick="submitAuth('register')">Sign up</button>
+      <button class="secondary-btn" id="toggle-auth-btn" onclick="toggleAuthMode()">Already have an account? Log in</button>
+    </div>
   </div>
 
-  <div id="app-view" class="container hidden">
-    <div style="display:flex; justify-content: space-between; align-items: center;">
-      <h2>Your Dashboard</h2>
-      <button onclick="logout()" style="width: auto; background: #555; padding: 8px 15px;">Log Out</button>
+  <div id="app-view" class="dashboard-wrapper hidden">
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <div>
+        <h1 style="margin: 0;">Academic Dashboard</h1>
+        <p id="user-display-email" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
+      </div>
+      <button onclick="triggerLogout()" style="width: auto; background: #555;">Log Out</button>
     </div>
 
     <div id="drop-zone">
-      <p style="font-weight: bold; margin: 0;">Drag & Drop your Syllabus / Curriculum JSON file here to auto-fill courses</p>
+      <p style="font-weight: 700; margin: 0; color: var(--burgundy);">🗂️ Drag & Drop your Curriculum Syllabus (.json file) to Auto-Fill Everything</p>
     </div>
 
-    <div class="card">
-      <h3>School Grading Scale Minimums (%)</h3>
-      <div class="scale-grid">
-        <div><label>A</label><input type="number" id="scale-a" value="93"></div>
-        <div><label>B</label><input type="number" id="scale-b" value="83"></div>
-        <div><label>C</label><input type="number" id="scale-c" value="73"></div>
-        <div><label>D</label><input type="number" id="scale-d" value="63"></div>
-      </div>
-      <button onclick="saveScale()">Save Scale Changes</button>
-    </div>
-
-    <div class="card">
-      <h3>Target Grade Target Finder</h3>
-      <label>What Final Grade total do you want? (%)</label>
-      <input type="number" id="target-goal" value="90" oninput="calculateTargets()">
+    <div class="grid-container">
       
-      <div id="sections-display" style="margin-top: 20px;">
+      <div>
+        <div class="card">
+          <h2>Weighted Sections Targets</h2>
+          <label for="target-goal">What final score are you targeting overall? (%)</label>
+          <input type="number" id="target-goal" value="90" step="0.5" oninput="runRecalculations()" style="max-width: 200px;">
+          
+          <div id="sections-injection-target" style="margin-top: 24px;">
+            </div>
         </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>School Grading Scale</h3>
+          <p style="font-size: 13px; color: #666; margin-top: -8px; margin-bottom: 16px;">Set the minimum floor percentage score required for each rank.</p>
+          
+          <div class="scale-matrix">
+            <div><label>A+</label><input type="number" id="sc-Aplus" value="97"></div>
+            <div><label>A</label><input type="number" id="sc-A" value="93"></div>
+            <div><label>A-</label><input type="number" id="sc-Aminus" value="90"></div>
+            
+            <div><label>B+</label><input type="number" id="sc-Bplus" value="87"></div>
+            <div><label>B</label><input type="number" id="sc-B" value="83"></div>
+            <div><label>B-</label><input type="number" id="sc-Bminus" value="80"></div>
+            
+            <div><label>C+</label><input type="number" id="sc-Cplus" value="77"></div>
+            <div><label>C</label><input type="number" id="sc-C" value="73"></div>
+            <div><label>C-</label><input type="number" id="sc-Cminus" value="70"></div>
+            
+            <div><label>D+</label><input type="number" id="sc-Dplus" value="67"></div>
+            <div><label>D</label><input type="number" id="sc-D" value="63"></div>
+            <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
+          </div>
+          <button onclick="commitScaleUpdates()" style="margin-top: 12px; padding: 10px;">Save Custom Scale</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <script>
-    let currentScale = { A: 93, B: 83, C: 73, D: 63 };
-    let mockCourseData = [
-      { name: "Homework", weight: 0.30, currentAvg: 88, weightCompleted: 0.20, weightRemaining: 0.10 },
-      { name: "Exams", weight: 0.50, currentAvg: 78, weightCompleted: 0.25, weightRemaining: 0.25 },
-      { name: "Quizzes", weight: 0.20, currentAvg: 92, weightCompleted: 0.15, weightRemaining: 0.05 }
-    ];
+    let activeAuthMode = 'register';
+    let globalGradingScale = {};
+    let globalCoursesDataset = [];
 
-    async function checkAuth() {
-      const res = await fetch('/api/me');
-      if (res.ok) {
-        document.getElementById('auth-view').classList.add('hidden');
-        document.getElementById('app-view').classList.remove('hidden');
-        loadDashboard();
+    function toggleAuthMode() {
+      const title = document.getElementById('auth-title');
+      const btn = document.getElementById('primary-auth-btn');
+      const toggle = document.getElementById('toggle-auth-btn');
+      
+      if(activeAuthMode === 'register') {
+        activeAuthMode = 'login';
+        title.innerText = 'Log into your account';
+        btn.innerText = 'Log in';
+        toggle.innerText = "Don't have an account? Sign up";
+      } else {
+        activeAuthMode = 'register';
+        title.innerText = 'Create your account';
+        btn.innerText = 'Sign up';
+        toggle.innerText = 'Already have an account? Log in';
       }
     }
 
-    async function handleAuth(type) {
+    async function checkActiveSession() {
+      try {
+        const res = await fetch('/api/me');
+        if(res.ok) {
+          const user = await res.json();
+          document.getElementById('user-display-email').innerText = `Logged in as: ${user.email}`;
+          document.getElementById('auth-view').classList.add('hidden');
+          document.getElementById('app-view').classList.remove('hidden');
+          await fetchWorkspaceData();
+        }
+      } catch(err) { console.error("Session fetch failure", err); }
+    }
+
+    async function submitAuth(fallbackType) {
+      document.getElementById('auth-error').classList.add('hidden');
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
-      const res = await fetch(`/api/${type}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (res.ok) checkAuth();
-      else alert("Authentication went wrong. Check backend setup.");
-    }
-
-    async function logout() {
-      await fetch('/api/logout', { method: 'POST' });
-      location.reload();
-    }
-
-    async function loadDashboard() {
-      const settingsRes = await fetch('/api/settings');
-      if (settingsRes.ok) {
-        const data = await settingsRes.json();
-        if (data.gradingScale) {
-          currentScale = data.gradingScale;
-          document.getElementById('scale-a').value = currentScale.A;
-          document.getElementById('scale-b').value = currentScale.B;
-          document.getElementById('scale-c').value = currentScale.C;
-          document.getElementById('scale-d').value = currentScale.D;
+      
+      const endpoint = `/api/${activeAuthMode}`;
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          document.getElementById('auth-error').classList.remove('hidden');
         }
+      } catch(e) {
+        document.getElementById('auth-error').classList.remove('hidden');
       }
-      renderSections();
     }
 
-    async function saveScale() {
-      currentScale = {
-        A: parseFloat(document.getElementById('scale-a').value),
-        B: parseFloat(document.getElementById('scale-b').value),
-        C: parseFloat(document.getElementById('scale-c').value),
-        D: parseFloat(document.getElementById('scale-d').value)
-      };
-      await fetch('/api/settings', {
+    async function triggerLogout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.reload();
+    }
+
+    async function fetchWorkspaceData() {
+      const res = await fetch('/api/userdata');
+      if(res.ok) {
+        const payload = await res.json();
+        globalGradingScale = payload.gradingScale || {};
+        globalCoursesDataset = payload.courses || [];
+        
+        // Populate inputs dynamically
+        Object.keys(globalGradingScale).forEach(key => {
+          const el = document.getElementById(`sc-${key}`);
+          if(el) el.value = globalGradingScale[key];
+        });
+        
+        generateCourseBreakdownDOM();
+      }
+    }
+
+    async function commitScaleUpdates() {
+      Object.keys(globalGradingScale).forEach(key => {
+        const el = document.getElementById(`sc-${key}`);
+        if(el) globalGradingScale[key] = parseFloat(el.value);
+      });
+
+      await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gradingScale: currentScale })
+        body: JSON.stringify({ gradingScale: globalGradingScale })
       });
-      calculateTargets();
+      runRecalculations();
     }
 
-    function renderSections() {
-      const display = document.getElementById('sections-display');
-      display.innerHTML = '';
-      mockCourseData.forEach((cat, index) => {
-        display.innerHTML += `
-          <div style="border-bottom: 1px solid #ddd; padding: 10px 0;">
-            <strong>${cat.name} (Total Weight: ${cat.weight * 100}%)</strong><br>
-            Current Average: ${cat.currentAvg}% | Completed Weight: ${cat.weightCompleted * 100}%<br>
-            <span id="target-output-${index}" style="color: #732626; font-weight: bold;"></span>
+    function generateCourseBreakdownDOM() {
+      const target = document.getElementById('sections-injection-target');
+      target.innerHTML = '';
+      
+      globalCoursesDataset.forEach((course, index) => {
+        target.innerHTML += `
+          <div class="section-card">
+            <h4 style="margin: 0 0 4px 0; font-size: 16px;">${course.name}</h4>
+            <div class="section-meta">
+              Total Category Weight: ${(course.weight * 100).toFixed(0)}% | 
+              Completed Weight: ${(course.weightCompleted * 100).toFixed(0)}% | 
+              Current Avg: ${course.currentAvg}%
+            </div>
+            <div class="target-output" id="target-feedback-${index}">Calculating...</div>
           </div>
         `;
       });
-      calculateTargets();
+      runRecalculations();
     }
 
-    function calculateTargets() {
+    function runRecalculations() {
       const targetGoal = parseFloat(document.getElementById('target-goal').value) || 90;
       
-      mockCourseData.forEach((cat, index) => {
-        // Calculate the target average score needed specifically on remaining assignments
-        // Formula: ScoreNeeded = (TargetAllocatedForCategory - (CurrentAvg * CompletedWeight)) / RemainingWeight
-        const targetAllocated = targetGoal * cat.weight;
-        const scoreNeeded = (targetAllocated - (cat.currentAvg * cat.weightCompleted)) / cat.weightRemaining;
-        
-        const outputSpan = document.getElementById(`target-output-${index}`);
-        if(scoreNeeded <= 0) {
-          outputSpan.innerText = "Target Achieved! You can get a 0% on the remaining work and still hit your goal.";
-        } else if (scoreNeeded > 100) {
-          outputSpan.innerText = `To get your goal, you would need a ${scoreNeeded.toFixed(1)}% on remaining work (Extra credit required).`;
+      globalCoursesDataset.forEach((course, index) => {
+        const outElement = document.getElementById(`target-feedback-${index}`);
+        if (!outElement) return;
+
+        if (course.weightRemaining <= 0) {
+          outElement.innerText = `Category Complete. Final Contribution: ${(course.currentAvg * course.weightCompleted).toFixed(1)}%`;
+          return;
+        }
+
+        // Target calculation logic
+        const targetAllocated = targetGoal * course.weight;
+        const requiredScore = (targetAllocated - (course.currentAvg * course.weightCompleted)) / course.weightRemaining;
+
+        if (requiredScore <= 0) {
+          outElement.innerText = `🎯 Target Safe! You can score a 0% on remaining assignments and still hit your goal.`;
+        } else if (requiredScore > 100) {
+          outElement.innerText = `⚠️ Extracurricular challenge: You need a ${requiredScore.toFixed(1)}% on remaining assignments to stay on pace.`;
         } else {
-          outputSpan.innerText = `To hit your goal, you must average a ${scoreNeeded.toFixed(1)}% on the remaining ${cat.name} assignments.`;
+          outElement.innerText = `📈 You need to maintain an average of ${requiredScore.toFixed(1)}% on your remaining ${course.name} assignments.`;
         }
       });
     }
 
-    // Drag and drop initialization
+    // Drag-And-Drop Context Initialization
     const dropZone = document.getElementById('drop-zone');
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener('drop', async (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-active');
+      
       const file = e.dataTransfer.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
           try {
             const parsed = JSON.parse(evt.target.result);
-            if(Array.isArray(parsed)) {
-              mockCourseData = parsed;
-              renderSections();
-              alert("Curriculum parsed and loaded successfully!");
+            if (Array.isArray(parsed)) {
+              globalCoursesDataset = parsed;
+              
+              // Push to Railway server
+              await fetch('/api/userdata', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ courses: globalCoursesDataset })
+              });
+              
+              generateCourseBreakdownDOM();
+              alert("Curriculum parsed and verified! Grid updated.");
+            } else {
+              alert("Ensure the layout is an array structure of valid modules.");
             }
-          } catch(e) { alert("Invalid JSON curriculum configuration template dropped."); }
+          } catch(err) { alert("Corrupted metadata framework parsed."); }
         };
         reader.readAsText(file);
       }
     });
 
-    window.onload = checkAuth;
+    window.onload = checkActiveSession;
   </script>
 </body>
 </html>
