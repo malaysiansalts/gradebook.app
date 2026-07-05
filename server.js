@@ -52,8 +52,8 @@ app.post('/api/register', (req, res) => {
       password, 
       classes: {
         "Math": [
-          { name: "Exams", weight: 60, currentAvg: 85 },
-          { name: "Homework", weight: 40, currentAvg: 95 }
+          { name: "Midterm Exam", type: "Exams", score: 85 },
+          { name: "Homework 1", type: "Homework", score: 95 }
         ]
       },
       gradingScale: { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 }
