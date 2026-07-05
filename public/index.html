@@ -96,14 +96,49 @@
     }
     input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
-    /* CRITICAL VIBE FIX: Wipe out browser-default white/square input spinners */
+    /* Hide default browser spinners completely */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
     input[type="number"] {
-      -moz-appearance: textfield; /* Firefox support */
+      -moz-appearance: textfield;
+    }
+
+    /* Vibe-Matched Custom Stepper Layout for adjusting numbers */
+    .stepper-container {
+      display: flex;
+      align-items: center;
+      background-color: #0f172a;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .stepper-container input {
+      border: none !important;
+      margin-bottom: 0 !important;
+      text-align: center;
+      padding: 8px 4px;
+    }
+    .stepper-btn {
+      background: #1e293b;
+      color: var(--text-muted);
+      border: none;
+      padding: 0 10px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      user-select: none;
+      border-radius: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+    .stepper-btn:hover {
+      background: #334155;
+      color: #ffffff;
+      transform: none;
     }
 
     /* Custom Vibe-Matched Select Dropdown Component */
@@ -182,7 +217,6 @@
 
     .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 20px; }
     
-    /* Minimize Layout Headers */
     .card-header {
       display: flex;
       justify-content: space-between;
@@ -197,7 +231,7 @@
     .card.minimized .card-content { display: none !important; }
 
     .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 30px; gap: 10px; align-items: center; margin-bottom: 6px; }
-    .row-item-3col input, .row-item-3col .vibe-dropdown { margin-bottom: 0; }
+    .row-item-3col input, .row-item-3col .vibe-dropdown, .row-item-3col .stepper-container { margin-bottom: 0; }
     
     .remove-btn { background: none; color: var(--text-muted); font-size: 16px; border: none; cursor: pointer; text-align: center; }
     .remove-btn:hover { color: #ef4444; }
@@ -206,7 +240,16 @@
     .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .scale-matrix div { background: #0f172a; padding: 6px; border: 1px solid var(--border-soft); border-radius: var(--radius-md); text-align: center; }
     .scale-matrix label { margin-bottom: 2px; font-size: 11px; }
-    .scale-matrix input { margin-bottom: 0; padding: 4px; text-align: center; background: transparent; border: none; font-size: 14px; font-weight: 700; }
+    
+    /* Clean micro layout fields for matrix scale floors */
+    .scale-matrix-field {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .scale-matrix input { margin-bottom: 0; padding: 4px; text-align: center; background: transparent; border: none; font-size: 14px; font-weight: 700; width: 45px; }
+    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; font-weight: bold; padding: 0 4px; }
+    .matrix-step-btn:hover { color: #ffffff; }
   </style>
 </head>
 <body>
@@ -304,7 +347,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
               <div>
                 <label>Target Class Grade %</label>
-                <input type="number" id="target-class-grade" value="90" style="margin-bottom:0;">
+                <div class="stepper-container">
+                  <button class="stepper-btn" onclick="stepInputValue('target-class-grade', -1)">−</button>
+                  <input type="number" id="target-class-grade" value="90">
+                  <button class="stepper-btn" onclick="stepInputValue('target-class-grade', 1)">+</button>
+                </div>
               </div>
               <div>
                 <label>Upcoming Test Category</label>
@@ -332,19 +379,19 @@
         <div class="card">
           <h3>Grading Threshold Mapping Floors</h3>
           <div class="scale-matrix">
-            <div><label>A+</label><input type="number" id="sc-Aplus" value="97"></div>
-            <div><label>A</label><input type="number" id="sc-A" value="93"></div>
-            <div><label>A-</label><input type="number" id="sc-Aminus" value="90"></div>
-            <div><label>B+</label><input type="number" id="sc-Bplus" value="87"></div>
-            <div><label>B</label><input type="number" id="sc-B" value="83"></div>
-            <div><label>B-</label><input type="number" id="sc-Bminus" value="80"></div>
-            <div><label>C+</label><input type="number" id="sc-Cplus" value="77"></div>
-            <div><label>C</label><input type="number" id="sc-C" value="73"></div>
-            <div><label>C-</label><input type="number" id="sc-Cminus" value="70"></div>
-            <div><label>D+</label><input type="number" id="sc-Dplus" value="67"></div>
-            <div><label>D</label><input type="number" id="sc-D" value="63"></div>
-            <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
-            <div style="grid-column: span 3;"><label>F Floor</label><input type="number" id="sc-F" value="0"></div>
+            <div><label>A+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',1)">+</button></div></div>
+            <div><label>A</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',1)">+</button></div></div>
+            <div><label>A-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aminus',-1)">-</button><input type="number" id="sc-Aminus" value="90"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aminus',1)">+</button></div></div>
+            <div><label>B+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bplus',-1)">-</button><input type="number" id="sc-Bplus" value="87"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bplus',1)">+</button></div></div>
+            <div><label>B</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-B',-1)">-</button><input type="number" id="sc-B" value="83"><button class="matrix-step-btn" onclick="stepInputValue('sc-B',1)">+</button></div></div>
+            <div><label>B-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bminus',-1)">-</button><input type="number" id="sc-Bminus" value="80"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bminus',1)">+</button></div></div>
+            <div><label>C+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cplus',-1)">-</button><input type="number" id="sc-Cplus" value="77"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cplus',1)">+</button></div></div>
+            <div><label>C</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-C',-1)">-</button><input type="number" id="sc-C" value="73"><button class="matrix-step-btn" onclick="stepInputValue('sc-C',1)">+</button></div></div>
+            <div><label>C-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cminus',-1)">-</button><input type="number" id="sc-Cminus" value="70"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cminus',1)">+</button></div></div>
+            <div><label>D+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',-1)">-</button><input type="number" id="sc-Dplus" value="67"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',1)">+</button></div></div>
+            <div><label>D</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',-1)">-</button><input type="number" id="sc-D" value="63"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',1)">+</button></div></div>
+            <div><label>D-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',1)">+</button></div></div>
+            <div style="grid-column: span 3;"><label>F Floor</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:100px;"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',1)">+</button></div></div>
           </div>
           <button onclick="saveScaleToServer()" style="width:100%; background:#1e293b; margin-top:12px; padding: 8px 0;">Sync Calibration Scale</button>
         </div>
@@ -360,7 +407,18 @@
     let activeFilterValue = "ALL";
     let activeCalcCategory = "";
 
-    // Card minimizing toggle engine
+    // Global utility to programmatically trigger step value updates securely on clean dark components
+    function stepInputValue(id, amount) {
+      const input = document.getElementById(id);
+      if(input) {
+        let val = parseFloat(input.value) || 0;
+        input.value = val + amount;
+        // Broadcast input update events manually to force execution calculations recalculating dynamically
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        readUiStateIntoMemory();
+      }
+    }
+
     function toggleCardMinimize(id) {
       const card = document.getElementById(id);
       const icon = card.querySelector('.toggle-icon');
@@ -368,7 +426,6 @@
       icon.innerText = card.classList.contains('minimized') ? '[+]' : '[–]';
     }
 
-    // Modern Vibe-Dropdown UI Builder Helper
     function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
       const wrapper = document.getElementById(wrapperId);
       const label = wrapper.querySelector('.vibe-dropdown-select');
@@ -479,7 +536,6 @@
     function populateCategoryFilters() {
       const currentClass = globalClasses[activeClassName] || { categories: [] };
       
-      // Setup panel 2 filter
       const filterOpts = [{ label: "Show All Categories", value: "ALL" }].concat(currentClass.categories.map(c => ({ label: c.name, value: c.name })));
       if (!filterOpts.some(o => o.value === activeFilterValue)) activeFilterValue = "ALL";
       const currentFilterLabel = filterOpts.find(o => o.value === activeFilterValue)?.label || "Show All Categories";
@@ -489,7 +545,6 @@
         buildUiElementsFromMemory();
       });
 
-      // Setup panel 3 calculator cat selector
       const calcOpts = currentClass.categories.map(c => ({ label: c.name, value: c.name }));
       if(calcOpts.length > 0) {
         if (!calcOpts.some(o => o.value === activeCalcCategory)) activeCalcCategory = calcOpts[0].value;
@@ -515,10 +570,15 @@
       catHook.innerHTML = '';
       
       targetClass.categories.forEach((cat, index) => {
+        const rowId = `cat-weight-step-${index}`;
         catHook.innerHTML += `
           <div class="row-item-3col cat-data-row">
             <input type="text" value="${cat.name}" class="cat-name-input" oninput="readUiStateIntoMemory()">
-            <input type="number" value="${cat.weight}" class="cat-weight-input" oninput="readUiStateIntoMemory()">
+            <div class="stepper-container">
+              <button class="stepper-btn" onclick="stepInputValue('${rowId}', -1)">−</button>
+              <input type="number" value="${cat.weight}" id="${rowId}" class="cat-weight-input" oninput="readUiStateIntoMemory()">
+              <button class="stepper-btn" onclick="stepInputValue('${rowId}', 1)">+</button>
+            </div>
             <button class="remove-btn" onclick="globalClasses[activeClassName].categories.splice(${index},1); populateCategoryFilters(); buildUiElementsFromMemory()">✕</button>
           </div>`;
       });
