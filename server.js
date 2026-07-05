@@ -123,7 +123,7 @@ app.post("/api/register", (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password } = body = req.body || {};
   const normalizedEmail = (email || "").trim().toLowerCase();
   const user = db.users.find((u) => u.email === normalizedEmail);
   if (!user || !bcrypt.compareSync(password || "", user.passwordHash)) {
@@ -158,18 +158,16 @@ app.get("/api/courses", requireAuth, (req, res) => {
 app.put("/api/courses", requireAuth, (req, res) => {
   const { courses } = req.body || {};
   if (!Array.isArray(courses)) {
-    return status(400).json({ error: "Invalid course data." });
+    return res.status(400).json({ error: "Invalid course data." });
   }
   db.coursesByUser[req.userId] = courses;
   saveDB(db);
   res.json({ ok: true });
 });
 
-// ---------- admin infrastructure developer features ----------
+// ---------- admin infrastructure features ----------
 
-// 1. Secure Data Dashboard Endpoint
 app.get("/api/admin/dashboard", requireAuth, requireAdmin, (req, res) => {
-  // Return user accounts (omitting raw security hashes) alongside database structures
   const cleanUsers = db.users.map(({ id, email }) => ({ id, email }));
   res.json({
     systemStatus: "ONLINE",
@@ -179,8 +177,6 @@ app.get("/api/admin/dashboard", requireAuth, requireAdmin, (req, res) => {
   });
 });
 
-// 2. Automated Admin Interface Injection Route
-// Visiting yourdomain.com/admin directly loads an administrative panel if authorized
 app.get("/admin", (req, res) => {
   res.send(`
     <!DOCTYPE html>
