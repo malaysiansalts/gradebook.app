@@ -478,6 +478,8 @@
       color: #ffffff;
       letter-spacing: -0.2px;
     }
+
+    /* Isolated Target Component Base State */
     .toggle-icon {
       color: var(--text-dark);
       font-size: 13px;
@@ -486,9 +488,12 @@
       border-radius: var(--radius-sm);
       transition: var(--transition-smooth);
     }
-    .card:hover .toggle-icon {
-      color: var(--text-primary);
-      background: rgba(255,255,255,0.08);
+
+    /* FIX: Trigger hover color shifts only when mouse is directly touching the icon element */
+    .toggle-icon:hover {
+      color: var(--text-primary) !important;
+      background: rgba(255,255,255,0.12) !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
     .card-content {
@@ -839,10 +844,11 @@
     }
 
     function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
-      const wrapper = document.getElementById(wrapperId);
-      if(!wrapper) return;
-      const label = wrapper.querySelector('.vibe-dropdown-select');
-      const container = wrapper.querySelector('.vibe-dropdown-options');
+      const wrapper = document.getElementById('wrapperId');
+      const targetWrapper = document.getElementById(wrapperId);
+      if(!targetWrapper) return;
+      const label = targetWrapper.querySelector('.vibe-dropdown-select');
+      const container = targetWrapper.querySelector('.vibe-dropdown-options');
       
       label.innerText = currentLabel;
       container.innerHTML = '';
@@ -854,7 +860,7 @@
         item.onclick = (e) => {
           e.stopPropagation();
           label.innerText = opt.label;
-          wrapper.classList.remove('active');
+          targetWrapper.classList.remove('active');
           onSelectCallback(opt.value);
         };
         container.appendChild(item);
@@ -862,9 +868,9 @@
 
       label.onclick = (e) => {
         e.stopPropagation();
-        const state = wrapper.classList.contains('active');
+        const state = targetWrapper.classList.contains('active');
         clearAllOpenDropdownWrappers();
-        if(!state) wrapper.classList.add('active');
+        if(!state) targetWrapper.classList.add('active');
       };
     }
 
@@ -964,7 +970,6 @@
       const filterOpts = [{ label: "All Categories", value: "ALL" }];
       categories.forEach(c => { if(c.name) filterOpts.push({ label: c.name, value: c.name }); });
       
-      // FIX: Callback now updates active assignment elements only, preventing table 1 flashing loops
       setupCustomDropdown('log-filter-wrapper', activeFilterValue === "ALL" ? "All Categories" : activeFilterValue, filterOpts, (val) => {
         activeFilterValue = val;
         generateAssignmentTableUI();
