@@ -4,6 +4,7 @@
   "description": "Multi-class academic gradebook track system",
   "main": "server.js",
   "scripts": {
+    "build": "npm install",
     "start": "node server.js"
   },
   "dependencies": {
