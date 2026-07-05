@@ -114,7 +114,7 @@
       <div>
         <div class="card">
           <h3>1. Class Weights Setup</h3>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Define grading pools and their values (Total must sum up to 100%).</p>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Define grading pools and their values.</p>
           <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
             <div>Category Name</div>
             <div>Category Weight %</div>
@@ -125,11 +125,16 @@
         </div>
 
         <div class="card">
-          <h3>2. Assignment Entries Log</h3>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Enter assignments scores to update calculated category values.</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin:0;">2. Assignment Entries Log</h3>
+            <div style="width: 200px;">
+              <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="margin-bottom:0; padding: 6px 10px;"></select>
+            </div>
+          </div>
+          <p style="font-size: 13px; color: #666; margin-top: -12px; margin-bottom: 15px;">Enter scores as single numbers (e.g. 88) or fractional limits (e.g. 17/20).</p>
           <div class="row-item-3col" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
             <div>Assignment Name</div>
-            <div>Category Placement / Score %</div>
+            <div>Category / Score (% or #/#)</div>
             <div style="text-align: center;">✕</div>
           </div>
           <div id="assignment-rows-hook" style="margin-top: 10px;"></div>
@@ -139,6 +144,25 @@
             <button onclick="saveAllCurrentDataToServer()" style="background: var(--burgundy);">Save Entire Class Layout</button>
           </div>
         </div>
+
+        <div class="card">
+          <h3>3. Target Test/Exam Grade Calculator</h3>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 15px;">Determine what grade you need on a future test to achieve your goal grade.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div>
+              <label>Target Class Grade %</label>
+              <input type="number" id="target-class-grade" value="90">
+            </div>
+            <div>
+              <label>Upcoming Test Category</label>
+              <select id="target-test-category" style="margin-bottom:0;"></select>
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button onclick="calculateRequiredExamScore()" style="width:100%; margin-bottom:15px;">Calculate Needed Grade</button>
+            </div>
+          </div>
+          <h4 id="target-result-badge" style="margin: 10px 0 0; color: var(--burgundy); font-size: 16px;">Enter values above and click calculate.</h4>
+        </div>
       </div>
 
       <div>
@@ -146,7 +170,6 @@
           <h3>Weighted Average</h3>
           <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
           <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 6px;" id="weight-alert-status">Total Configuration Balance: 0%</p>
         </div>
 
         <div class="card">
@@ -177,6 +200,7 @@
     let globalScale = {};
     let globalClasses = {};
     let activeClassName = "";
+    let cachedAverages = {}; 
 
     function toggleAuth() {
       const title = document.getElementById('auth-title');
@@ -243,7 +267,31 @@
       }
       dropdown.value = activeClassName;
       document.getElementById('rename-class-input').value = activeClassName;
+      
+      populateCategoryFilters();
       buildUiElementsFromMemory();
+    }
+
+    function populateCategoryFilters() {
+      const currentClass = globalClasses[activeClassName] || { categories: [] };
+      const filterSelect = document.getElementById('category-filter-dropdown');
+      const targetCalcSelect = document.getElementById('target-test-category');
+      
+      const previousFilterVal = filterSelect.value;
+      
+      filterSelect.innerHTML = '<option value="ALL">Show All Categories</option>';
+      targetCalcSelect.innerHTML = '';
+      
+      currentClass.categories.forEach(c => {
+        filterSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        targetCalcSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+      });
+
+      if(previousFilterVal && filterSelect.querySelector(`option[value="${previousFilterVal}"]`)){
+        filterSelect.value = previousFilterVal;
+      } else {
+        filterSelect.value = "ALL";
+      }
     }
 
     function createNewClassChannel() {
@@ -251,7 +299,7 @@
       const name = inputEl.value.trim();
       if(name && !globalClasses[name]) {
         globalClasses[name] = {
-          categories: [{ name: "Exams", weight: 100 }],
+          categories: [{ name: "Exams", weight: 50 }, { name: "Homework", weight: 50 }],
           assignments: []
         };
         activeClassName = name;
@@ -283,7 +331,20 @@
     function switchActiveClass() {
       activeClassName = document.getElementById('class-dropdown').value;
       document.getElementById('rename-class-input').value = activeClassName;
+      populateCategoryFilters();
       buildUiElementsFromMemory();
+    }
+
+    function parseScoreString(str) {
+      if (!str) return 100;
+      const clean = str.toString().trim();
+      if (clean.includes('/')) {
+        const parts = clean.split('/');
+        const numerator = parseFloat(parts[0]) || 0;
+        const denominator = parseFloat(parts[1]) || 1;
+        return (numerator / denominator) * 100;
+      }
+      return parseFloat(clean) || 0;
     }
 
     function buildUiElementsFromMemory() {
@@ -304,21 +365,25 @@
         `;
       });
 
-      // Render assignments
+      // Render filtered assignments
+      const filterSelection = document.getElementById('category-filter-dropdown').value;
       const assignHook = document.getElementById('assignment-rows-hook');
       assignHook.innerHTML = '';
+      
       targetClass.assignments.forEach((asm, index) => {
+        if (filterSelection !== "ALL" && asm.category !== filterSelection) return;
+
         let selectOptions = '';
         targetClass.categories.forEach(c => {
           selectOptions += `<option value="${c.name}" ${asm.category === c.name ? 'selected' : ''}>${c.name}</option>`;
         });
 
         assignHook.innerHTML += `
-          <div class="row-item-3col asm-data-row">
+          <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
             <div style="display:flex; gap: 6px;">
               <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
-              <input type="number" value="${asm.score}" class="asm-score-input" style="width: 80px;" oninput="readUiStateIntoMemory()">
+              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" style="width: 90px;" oninput="readUiStateIntoMemory()">
             </div>
             <button class="remove-btn" onclick="removeAssignment(${index})">✕</button>
           </div>
@@ -330,18 +395,22 @@
 
     function appendBlankCategoryRow() {
       globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 });
+      populateCategoryFilters();
       buildUiElementsFromMemory();
     }
 
     function removeCategory(index) {
       globalClasses[activeClassName].categories.splice(index, 1);
+      populateCategoryFilters();
       buildUiElementsFromMemory();
     }
 
     function appendBlankAssignmentRow() {
       const cats = globalClasses[activeClassName].categories;
-      const defaultCat = cats.length > 0 ? cats[0].name : "Exams";
-      globalClasses[activeClassName].assignments.push({ name: "Homework", category: defaultCat, score: 100 });
+      const filterSelection = document.getElementById('category-filter-dropdown').value;
+      const defaultCat = filterSelection !== "ALL" ? filterSelection : (cats.length > 0 ? cats[0].name : "Exams");
+      
+      globalClasses[activeClassName].assignments.push({ name: "New Item", category: defaultCat, scoreStr: "100" });
       buildUiElementsFromMemory();
     }
 
@@ -361,13 +430,13 @@
       });
 
       const asmRows = document.querySelectorAll('.asm-data-row');
-      globalClasses[activeClassName].assignments = [];
       asmRows.forEach(row => {
-        globalClasses[activeClassName].assignments.push({
-          name: row.querySelector('.asm-name-input').value,
-          category: row.querySelector('.asm-cat-select').value,
-          score: parseFloat(row.querySelector('.asm-score-input').value) || 0
-        });
+        const targetIdx = parseInt(row.getAttribute('data-index'));
+        if(globalClasses[activeClassName].assignments[targetIdx]) {
+          globalClasses[activeClassName].assignments[targetIdx].name = row.querySelector('.asm-name-input').value;
+          globalClasses[activeClassName].assignments[targetIdx].category = row.querySelector('.asm-cat-select').value;
+          globalClasses[activeClassName].assignments[targetIdx].scoreStr = row.querySelector('.asm-score-input').value;
+        }
       });
 
       runCalculations();
@@ -377,14 +446,7 @@
       const currentClass = globalClasses[activeClassName];
       if (!currentClass) return;
 
-      let weightTotal = 0;
-      currentClass.categories.forEach(c => weightTotal += c.weight);
-      
-      const statusLabel = document.getElementById('weight-alert-status');
-      statusLabel.innerText = `Total Setup Weight: ${weightTotal}%`;
-      statusLabel.style.color = (weightTotal === 100) ? 'green' : 'var(--burgundy)';
-
-      // Calculate averages per category
+      cachedAverages = {};
       let overallScore = 0;
       let totalValidWeight = 0;
 
@@ -392,11 +454,14 @@
         const matches = currentClass.assignments.filter(a => a.category === cat.name);
         if (matches.length > 0) {
           let sum = 0;
-          matches.forEach(m => sum += m.score);
+          matches.forEach(m => sum += parseScoreString(m.scoreStr));
           let catAvg = sum / matches.length;
           
+          cachedAverages[cat.name] = catAvg;
           overallScore += catAvg * (cat.weight / 100);
           totalValidWeight += cat.weight;
+        } else {
+          cachedAverages[cat.name] = null; 
         }
       });
 
@@ -416,6 +481,53 @@
         }
       }
       document.getElementById('score-letter-badge').innerText = letter;
+    }
+
+    function calculateRequiredExamScore() {
+      const targetGrade = parseFloat(document.getElementById('target-class-grade').value) || 0;
+      const targetCatName = document.getElementById('target-test-category').value;
+      const currentClass = globalClasses[activeClassName];
+      
+      if (!currentClass || !targetCatName) return;
+
+      let totalWeight = 0;
+      currentClass.categories.forEach(c => totalWeight += c.weight);
+      if(totalWeight === 0) return;
+
+      let currentContribution = 0;
+      let targetCatWeight = 0;
+      
+      currentClass.categories.forEach(cat => {
+        if (cat.name === targetCatName) {
+          targetCatWeight = cat.weight;
+        } else {
+          const matches = currentClass.assignments.filter(a => a.category === cat.name);
+          const catAvg = matches.length > 0 ? (matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0) / matches.length) : 100;
+          currentContribution += catAvg * (cat.weight / 100);
+        }
+      });
+
+      const matches = currentClass.assignments.filter(a => a.category === targetCatName);
+      const count = matches.length;
+      
+      // Target category average required to hit target overall grade
+      const requiredCatAvg = ((targetGrade * (totalWeight / 100)) - currentContribution) / (targetCatWeight / 100);
+      
+      // Calculate what score the upcoming single test needs to be
+      let requiredTestScore = 0;
+      if (count === 0) {
+        requiredTestScore = requiredCatAvg;
+      } else {
+        const runningSum = matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0);
+        requiredTestScore = (requiredCatAvg * (count + 1)) - runningSum;
+      }
+
+      const badge = document.getElementById('target-result-badge');
+      if (requiredTestScore <= 0) {
+        badge.innerText = `You already hit your goal! You can get a 0.0% on this test and maintain your target.`;
+      } else {
+        badge.innerText = `Required grade on next ${targetCatName} entry: ${requiredTestScore.toFixed(1)}%`;
+      }
     }
 
     async function syncDataWithDatabase() {
