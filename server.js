@@ -17,7 +17,6 @@ app.use(session({
   cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 }
 }));
 
-// Bulletproof database reading - prevents all JSON startup crashes
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) {
