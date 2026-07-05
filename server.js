@@ -57,8 +57,8 @@ app.post('/api/register', (req, res) => {
             { name: "Homework", weight: 40 }
           ],
           assignments: [
-            { name: "Midterm", category: "Exams", score: 85 },
-            { name: "Homework 1", category: "Homework", score: 95 }
+            { name: "Midterm", category: "Exams", scoreStr: "85" },
+            { name: "Homework 1", category: "Homework", scoreStr: "18/20" }
           ]
         }
       },
