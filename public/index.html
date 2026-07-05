@@ -44,6 +44,8 @@
     button { background: var(--burgundy); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
     button:hover { background: var(--burgundy-hover); }
     .secondary-btn { background: none; color: #666; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; }
+    .danger-btn { background: #b03a3a; color: white; }
+    .danger-btn:hover { background: #8a2e2e; }
 
     .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
     @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
@@ -54,12 +56,12 @@
 
     .course-row-item {
       display: grid;
-      grid-template-columns: 3fr 1fr 1fr 40px;
+      grid-template-columns: 2fr 2fr 1fr 40px;
       gap: 12px;
       align-items: center;
       margin-bottom: 12px;
     }
-    .course-row-item input { margin-bottom: 0; padding: 10px; }
+    .course-row-item input, .course-row-item select { margin-bottom: 0; padding: 10px; }
 
     .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; padding: 0; }
     .remove-btn:hover { color: var(--burgundy); }
@@ -100,6 +102,7 @@
         <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom: 0;"></select>
       </div>
       <div style="display: flex; gap: 8px; align-items: flex-end;">
+        <button onclick="deleteCurrentClassChannel()" class="danger-btn" style="white-space: nowrap; margin-right: 15px;">Delete Current Class</button>
         <input type="text" id="new-class-input" placeholder="e.g., Chemistry" style="margin-bottom: 0; width: 180px;">
         <button onclick="createNewClassChannel()" style="white-space: nowrap;">+ Add Class</button>
       </div>
@@ -109,20 +112,20 @@
       
       <div>
         <div class="card">
-          <h2 id="active-class-title">Class Breakdown</h2>
-          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Enter your category titles, total breakdown weights, and current score averages manually.</p>
+          <h2 id="active-class-title">Assignments Breakdown</h2>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Log your individual scores here. The calculator automatically weighs Exams, Tests, and Homework evenly across entries.</p>
 
           <div class="course-row-item" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
-            <div>Category / Assignment Name</div>
-            <div>Weight %</div>
-            <div>Your Avg %</div>
+            <div>Assignment Name</div>
+            <div>Category Type</div>
+            <div>Score %</div>
             <div style="text-align: center;">Clear</div>
           </div>
 
           <div id="table-rows-hook"></div>
 
           <div style="display: flex; gap: 12px; margin-top: 20px;">
-            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Row</button>
+            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Assignment</button>
             <button onclick="saveRowsToServer()">Save Class Changes</button>
           </div>
         </div>
@@ -133,7 +136,7 @@
           <h3>Class Average</h3>
           <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
           <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated relative total weight average.</p>
+          <p style="color: #666; font-size: 13px; margin-top: 6px;">Calculated unweighted assignment arithmetic average.</p>
         </div>
 
         <div class="card">
@@ -239,10 +242,25 @@
       if(name && name.trim() !== "") {
         const cleanName = name.trim();
         if(!globalClasses[cleanName]) {
-          globalClasses[cleanName] = [{ name: "Exams", weight: 50, currentAvg: 100 }];
+          globalClasses[cleanName] = [{ name: "Assignment 1", type: "Exams", score: 100 }];
         }
         activeClassName = cleanName;
         inputEl.value = ""; 
+        populateClassDropdown();
+      }
+    }
+
+    async function deleteCurrentClassChannel() {
+      if(confirm(`Are you sure you want to delete the class "${activeClassName}"?`)) {
+        delete globalClasses[activeClassName];
+        activeClassName = "";
+        
+        await fetch('/api/userdata', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ classes: globalClasses })
+        });
+        
         populateClassDropdown();
       }
     }
@@ -253,18 +271,25 @@
     }
 
     function buildRowsInDOM() {
-      document.getElementById('active-class-title').innerText = `${activeClassName} Breakdown`;
+      document.getElementById('active-class-title').innerText = `${activeClassName} Assignments`;
       const hook = document.getElementById('table-rows-hook');
       hook.innerHTML = '';
       
       const currentClassRows = globalClasses[activeClassName] || [];
       
-      currentClassRows.forEach((course, index) => {
+      currentClassRows.forEach((item, index) => {
+        const typeValue = item.type || "Exams";
         hook.innerHTML += `
           <div class="course-row-item" data-id="${index}">
-            <input type="text" value="${course.name}" class="inp-name" oninput="readRowsFromDOM()">
-            <input type="number" value="${course.weight}" class="inp-weight" oninput="readRowsFromDOM()">
-            <input type="number" value="${course.currentAvg}" class="inp-avg" oninput="readRowsFromDOM()">
+            <input type="text" value="${item.name || ''}" class="inp-name" oninput="readRowsFromDOM()">
+            <select class="inp-type" onchange="readRowsFromDOM()">
+              <option value="Exams" ${typeValue === 'Exams' ? 'selected' : ''}>Exams</option>
+              <option value="Tests" ${typeValue === 'Tests' ? 'selected' : ''}>Tests</option>
+              <option value="Homework" ${typeValue === 'Homework' ? 'selected' : ''}>Homework</option>
+              <option value="Quizzes" ${typeValue === 'Quizzes' ? 'selected' : ''}>Quizzes</option>
+              <option value="Projects" ${typeValue === 'Projects' ? 'selected' : ''}>Projects</option>
+            </select>
+            <input type="number" value="${item.score !== undefined ? item.score : 100}" class="inp-score" oninput="readRowsFromDOM()">
             <button class="remove-btn" onclick="removeRowItem(${index})">✕</button>
           </div>
         `;
@@ -274,7 +299,7 @@
 
     function appendBlankCategoryRow() {
       if(!globalClasses[activeClassName]) globalClasses[activeClassName] = [];
-      globalClasses[activeClassName].push({ name: "New Category", weight: 10, currentAvg: 100 });
+      globalClasses[activeClassName].push({ name: "New Item", type: "Exams", score: 100 });
       buildRowsInDOM();
     }
 
@@ -290,8 +315,8 @@
       DOMrows.forEach(row => {
         globalClasses[activeClassName].push({
           name: row.querySelector('.inp-name').value,
-          weight: parseFloat(row.querySelector('.inp-weight').value) || 0,
-          currentAvg: parseFloat(row.querySelector('.inp-avg').value) || 0
+          type: row.querySelector('.inp-type').value,
+          score: parseFloat(row.querySelector('.inp-score').value) || 0
         });
       });
       runCalculations();
@@ -304,7 +329,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ classes: globalClasses })
       });
-      alert("All classes saved successfully!");
+      alert("Changes saved to database successfully!");
     }
 
     async function saveScaleToServer() {
@@ -321,17 +346,17 @@
 
     function runCalculations() {
       const currentClassRows = globalClasses[activeClassName] || [];
-      let totalWeightEntered = 0;
-      let weightedPointsSum = 0;
+      let totalScores = 0;
+      let count = 0;
 
-      currentClassRows.forEach(course => {
-        totalWeightEntered += course.weight;
-        weightedPointsSum += (course.currentAvg * (course.weight / 100));
+      currentClassRows.forEach(item => {
+        totalScores += (item.score !== undefined ? item.score : 100);
+        count++;
       });
 
       let overallAverage = 0;
-      if (totalWeightEntered > 0) {
-        overallAverage = (weightedPointsSum / (totalWeightEntered / 100));
+      if (count > 0) {
+        overallAverage = totalScores / count;
       }
       
       document.getElementById('score-pct-badge').innerText = `${overallAverage.toFixed(1)}%`;
