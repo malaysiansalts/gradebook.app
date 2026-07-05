@@ -40,7 +40,7 @@ function writeDB(data) {
   }
 }
 
-// Google Search Console Verification Route
+// Google Search Console Standalone File Verification Route
 app.get('/googled65c8d58b8735815.html', (req, res) => {
   res.send('google-site-verification: googled65c8d58b8735815.html');
 });
@@ -62,8 +62,8 @@ app.post('/api/register', (req, res) => {
             { name: "Homework", weight: 40 }
           ],
           assignments: [
-            { name: "Midterm", category: "Exams", scoreStr: "85" },
-            { name: "Homework 1", category: "Homework", scoreStr: "18/20" }
+            { name: "Midterm", category: "Exams", score: 85, total: 100 },
+            { name: "Homework 1", category: "Homework", score: 18, total: 20 }
           ]
         }
       },
