@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradebook — Premium Academic Tracking</title>
+  <title>Gradebook Application</title>
   <style>
     :root {
       --bg-cream: #faf8f5;
@@ -27,7 +27,6 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
     }
 
     .auth-card {
@@ -46,45 +45,9 @@
       padding: 0 20px;
     }
 
-    .brand-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .brand-icon {
-      background: var(--burgundy);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .brand-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--burgundy);
-      margin: 0;
-    }
-
-    h1, h2, h3, h4 {
-      color: var(--burgundy);
-      margin-top: 0;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
+    h1, h2, h3 { color: var(--burgundy); margin-top: 0; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+    
     input {
       width: 100%;
       padding: 10px 14px;
@@ -93,13 +56,8 @@
       border-radius: 8px;
       box-sizing: border-box;
       background-color: #fdfcfb;
-      font-size: 14px;
     }
-
-    input:focus {
-      outline: none;
-      border-color: var(--burgundy);
-    }
+    input:focus { outline: none; border-color: var(--burgundy); }
 
     button {
       background: var(--burgundy);
@@ -109,99 +67,46 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 15px;
-      width: 100%;
       transition: background 0.2s;
     }
-
     button:hover { background: var(--burgundy-hover); }
 
-    .secondary-btn {
-      background: none;
-      color: #666;
-      border: 1px solid var(--border-color);
-      margin-top: 10px;
-    }
-    .secondary-btn:hover { background: #f5f0eb; }
+    .secondary-btn { background: none; color: #666; border: 1px solid var(--border-color); margin-top: 10px; width: 100%; }
 
-    .grid-container {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 30px;
-    }
+    .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+    @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
 
-    @media (max-width: 850px) {
-      .grid-container { grid-template-columns: 1fr; }
-    }
+    .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    
+    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .scale-matrix input { padding: 6px; text-align: center; margin-bottom: 6px; }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .summary-grade-badge {
-      font-size: 48px;
-      font-weight: 800;
-      color: var(--burgundy);
-      margin: 10px 0;
-    }
-
-    .scale-matrix {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    .scale-matrix input {
-      padding: 6px;
-      text-align: center;
-      margin-bottom: 6px;
-    }
-
-    #drop-zone {
-      border: 2px dashed var(--burgundy);
-      padding: 25px;
-      text-align: center;
-      border-radius: 12px;
-      background: #fdfbfa;
-      cursor: pointer;
-      margin-bottom: 30px;
-    }
+    #drop-zone { border: 2px dashed var(--burgundy); padding: 25px; text-align: center; border-radius: 12px; background: #fdfbfa; margin-bottom: 30px; }
     #drop-zone.drag-active { background: #f4ebe8; }
 
-    /* Editable Manual Form Row Grid */
-    .section-row-inputs {
+    /* The original row input system grid */
+    .course-row-item {
       display: grid;
-      grid-template-columns: 2fr repeat(4, 1fr) 30px;
+      grid-template-columns: 2fr repeat(4, 1fr) 40px;
       gap: 10px;
       align-items: center;
       margin-bottom: 12px;
     }
-    .section-row-inputs input { margin-bottom: 0; padding: 8px; }
+    .course-row-item input { margin-bottom: 0; padding: 8px; }
 
-    .target-output {
-      font-weight: 600;
-      color: var(--burgundy);
+    .target-feedback-line {
       font-size: 13px;
-      margin-top: 4px;
+      color: var(--burgundy);
+      font-weight: 600;
       grid-column: 1 / -1;
       padding-bottom: 12px;
       border-bottom: 1px dashed var(--border-color);
+      margin-top: 4px;
     }
 
-    .delete-row-btn {
-      background: none;
-      color: #999;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      padding: 0;
-      text-align: center;
-    }
-    .delete-row-btn:hover { color: var(--burgundy); }
-
+    .remove-btn { background: none; color: #aaa; font-size: 20px; border: none; cursor: pointer; text-align: center; width: 100%; padding: 0; }
+    .remove-btn:hover { color: var(--burgundy); }
+    
     .hidden { display: none !important; }
   </style>
 </head>
@@ -209,81 +114,75 @@
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
-      <div class="brand-header">
-        <div class="brand-icon">🎓</div>
-        <h2 class="brand-title">Gradebook</h2>
-      </div>
-      <h3 id="auth-title">Create your account</h3>
-      <div id="auth-error" style="color: var(--burgundy); font-weight: 600; margin-bottom: 15px;" class="hidden">Something went wrong.</div>
+      <h2 style="margin-bottom: 20px;" id="auth-title">Create Account</h2>
+      <div id="auth-error" style="color: var(--burgundy); font-weight: bold; margin-bottom: 15px;" class="hidden">Something went wrong. Try again!</div>
       
       <label>Email</label>
-      <input type="email" id="auth-email" placeholder="student@school.edu">
+      <input type="email" id="auth-email" placeholder="name@domain.com">
       
       <label>Password</label>
       <input type="password" id="auth-password" placeholder="••••••••••••">
       
-      <button id="primary-auth-btn" onclick="submitAuth()">Sign up</button>
-      <button class="secondary-btn" id="toggle-auth-btn" onclick="toggleAuthMode()">Already have an account? Log in</button>
+      <button style="width:100%;" onclick="executeAuth()">Submit</button>
+      <button class="secondary-btn" onclick="toggleAuth()">Toggle Log In / Sign Up</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
     <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
       <div>
-        <h1 style="margin: 0;">Academic Gradebook</h1>
-        <p id="user-display-email" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
+        <h1 style="margin: 0;">Gradebook System</h1>
+        <p id="current-user-tag" style="margin: 4px 0 0; color: #666; font-size: 14px;"></p>
       </div>
-      <button onclick="triggerLogout()" style="width: auto; background: #555;">Log Out</button>
+      <button onclick="logOutUser()" style="background: #555;">Log Out</button>
     </div>
 
     <div id="drop-zone">
-      <p style="font-weight: 700; margin: 0; color: var(--burgundy);">🗂️ Drag & Drop a Curriculum JSON file here to instantly auto-fill grades</p>
+      <p style="font-weight: bold; margin: 0; color: var(--burgundy);">🗂️ Drop curriculum file here to automatically populate custom categories</p>
     </div>
 
     <div class="grid-container">
       
       <div>
         <div class="card">
-          <h2>Weighted Course Breakdown</h2>
-          <p style="font-size: 13px; color: #666; margin-top: -8px; margin-bottom: 20px;">
-            Modify assignment titles, totals weights, completed scores, or remaining weights. Changes update automatically.
-          </p>
+          <h2>Course Categories Breakdown</h2>
+          <p style="font-size: 13px; color: #666; margin-top: -6px; margin-bottom: 20px;">Type categories manually. Press save below to remember layout changes permanently.</p>
 
-          <div class="section-row-inputs" style="font-weight:bold; font-size:12px; margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-            <div>Category Name</div>
+          <div class="course-row-item" style="font-weight: bold; font-size: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+            <div>Category / Assignment Name</div>
             <div>Total Weight %</div>
             <div>Current Avg %</div>
             <div>Comp. Wt %</div>
             <div>Rem. Wt %</div>
-            <div></div>
+            <div>Clear</div>
           </div>
 
-          <div id="dynamic-rows-container">
+          <div id="table-rows-hook">
             </div>
 
-          <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button onclick="addNewBlankRow()" style="background: #555; width: auto; padding: 10px 15px;">+ Add Custom Section</button>
-            <button onclick="saveAllCurrentRows()" style="width: auto; padding: 10px 25px;">Save & Persist Layout</button>
+          <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <button onclick="appendBlankCategoryRow()" style="background: #555;">+ Add Custom Category</button>
+            <button onclick="saveRowsToServer()">Save Changes Securely</button>
           </div>
         </div>
       </div>
 
       <div>
         <div class="card" style="text-align: center;">
-          <h3>Current Class Grade</h3>
-          <div class="summary-grade-badge" id="live-percentage-display">0.0%</div>
-          <h2 id="live-letter-display" style="margin: 0; font-size: 28px;">F</h2>
-          <p style="color: #666; font-size: 13px; margin-top: 8px;">Based on your completed weighted scores.</p>
+          <h3>Calculated Running Grade</h3>
+          <h1 id="score-pct-badge" style="font-size: 50px; margin: 10px 0; color: var(--burgundy);">0.0%</h1>
+          <h2 id="score-letter-badge" style="margin: 0; font-size: 30px;">F</h2>
+          <p style="color: #666; font-size: 13px; margin-top: 6px;">Weighted against active completed segments.</p>
         </div>
 
         <div class="card">
-          <h3>Target Finder Goal</h3>
-          <label for="target-goal">What final grade total do you want? (%)</label>
-          <input type="number" id="target-goal" value="90" step="0.5" oninput="runRecalculations()">
+          <h3>Target Goal Settings</h3>
+          <label>What target grade do you want to secure? (%)</label>
+          <input type="number" id="overall-target-goal" value="90" oninput="runCalculations()">
         </div>
 
         <div class="card">
-          <h3>School Grading Scale</h3>
+          <h3>Grading Thresholds Scale</h3>
           <div class="scale-matrix">
             <div><label>A+</label><input type="number" id="sc-Aplus" value="97"></div>
             <div><label>A</label><input type="number" id="sc-A" value="93"></div>
@@ -298,7 +197,7 @@
             <div><label>D</label><input type="number" id="sc-D" value="63"></div>
             <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
           </div>
-          <button onclick="commitScaleUpdates()" style="margin-top: 10px; padding: 10px 0;">Apply Scale Changes</button>
+          <button onclick="saveScaleToServer()" style="width:100%; margin-top: 10px; padding: 10px 0;">Apply Floor Scale</button>
         </div>
       </div>
 
@@ -306,184 +205,168 @@
   </div>
 
   <script>
-    let activeAuthMode = 'register';
-    let globalGradingScale = {};
-    let globalCoursesDataset = [];
+    let currentAuthMode = 'register';
+    let globalScale = {};
+    let globalCourses = [];
 
-    function toggleAuthMode() {
+    function toggleAuth() {
       const title = document.getElementById('auth-title');
-      const btn = document.getElementById('primary-auth-btn');
-      const toggle = document.getElementById('toggle-auth-btn');
-      if(activeAuthMode === 'register') {
-        activeAuthMode = 'login'; title.innerText = 'Log into your account'; btn.innerText = 'Log in'; toggle.innerText = "Don't have an account? Sign up";
-      } else {
-        activeAuthMode = 'register'; title.innerText = 'Create your account'; btn.innerText = 'Sign up'; toggle.innerText = 'Already have an account? Log in';
-      }
+      currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
+      title.innerText = (currentAuthMode === 'login') ? 'Log In' : 'Create Account';
     }
 
-    async function checkActiveSession() {
+    async function checkSession() {
       const res = await fetch('/api/me');
       if(res.ok) {
-        const user = await res.json();
-        document.getElementById('user-display-email').innerText = `Account: ${user.email}`;
+        const data = await res.json();
+        document.getElementById('current-user-tag').innerText = `Active User: ${data.email}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
-        await fetchWorkspaceData();
+        await loadBackendData();
       }
     }
 
-    async function submitAuth() {
+    async function executeAuth() {
       document.getElementById('auth-error').classList.add('hidden');
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
-      try {
-        const res = await fetch(`/api/${activeAuthMode}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        if (res.ok) window.location.reload();
-        else document.getElementById('auth-error').classList.remove('hidden');
-      } catch(e) { document.getElementById('auth-error').classList.remove('hidden'); }
+      const res = await fetch(`/api/${currentAuthMode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if(res.ok) window.location.reload();
+      else document.getElementById('auth-error').classList.remove('hidden');
     }
 
-    async function triggerLogout() {
-      await fetch('/api/logout', { method: 'POST' });
-      window.location.reload();
-    }
+    async function logOutUser() { await fetch('/api/logout', { method: 'POST' }); window.location.reload(); }
 
-    async function fetchWorkspaceData() {
+    async function loadBackendData() {
       const res = await fetch('/api/userdata');
       if(res.ok) {
         const payload = await res.json();
-        globalGradingScale = payload.gradingScale || {};
-        globalCoursesDataset = payload.courses || [];
+        globalScale = payload.gradingScale || {};
+        globalCourses = payload.courses || [];
         
-        Object.keys(globalGradingScale).forEach(key => {
-          const el = document.getElementById(`sc-${key}`); if(el) el.value = globalGradingScale[key];
+        Object.keys(globalScale).forEach(key => {
+          const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
         });
-        renderInteractiveRows();
+        buildRowsInDOM();
       }
     }
 
-    function renderInteractiveRows() {
-      const container = document.getElementById('dynamic-rows-container');
-      container.innerHTML = '';
+    function buildRowsInDOM() {
+      const hook = document.getElementById('table-rows-hook');
+      hook.innerHTML = '';
       
-      globalCoursesDataset.forEach((course, index) => {
-        container.innerHTML += `
-          <div class="section-row-inputs" data-index="${index}">
-            <input type="text" value="${course.name}" class="row-name" oninput="captureRowData()">
-            <input type="number" value="${course.weight * 100 || course.weight}" class="row-weight" oninput="captureRowData()">
-            <input type="number" value="${course.currentAvg}" class="row-avg" oninput="captureRowData()">
-            <input type="number" value="${course.weightCompleted * 100 || course.weightCompleted}" class="row-wcomp" oninput="captureRowData()">
-            <input type="number" value="${course.weightRemaining * 100 || course.weightRemaining}" class="row-wrem" oninput="captureRowData()">
-            <button class="delete-row-btn" onclick="deleteRowItem(${index})">✕</button>
-            <div class="target-output" id="row-target-calc-${index}">Calculating target metrics...</div>
+      globalCourses.forEach((course, index) => {
+        hook.innerHTML += `
+          <div class="course-row-item" data-id="${index}">
+            <input type="text" value="${course.name}" class="inp-name" oninput="readRowsFromDOM()">
+            <input type="number" value="${course.weight * 100 || course.weight}" class="inp-weight" oninput="readRowsFromDOM()">
+            <input type="number" value="${course.currentAvg}" class="inp-avg" oninput="readRowsFromDOM()">
+            <input type="number" value="${course.weightCompleted * 100 || course.weightCompleted}" class="inp-wcomp" oninput="readRowsFromDOM()">
+            <input type="number" value="${course.weightRemaining * 100 || course.weightRemaining}" class="inp-wrem" oninput="readRowsFromDOM()">
+            <button class="remove-btn" onclick="removeRowItem(${index})">✕</button>
+            <div class="target-feedback-line" id="target-feedback-${index}">Calculating details...</div>
           </div>
         `;
       });
-      runRecalculations();
+      runCalculations();
     }
 
-    function addNewBlankRow() {
-      globalCoursesDataset.push({ name: "New Category", weight: 10, currentAvg: 100, weightCompleted: 10, weightRemaining: 0 });
-      renderInteractiveRows();
+    function appendBlankCategoryRow() {
+      globalCourses.push({ name: "New Category", weight: 10, currentAvg: 100, weightCompleted: 10, weightRemaining: 0 });
+      buildRowsInDOM();
     }
 
-    function deleteRowItem(idx) {
-      globalCoursesDataset.splice(idx, 1);
-      renderInteractiveRows();
+    function removeRowItem(idx) {
+      globalCourses.splice(idx, 1);
+      buildRowsInDOM();
     }
 
-    function captureRowData() {
-      const rows = document.querySelectorAll('#dynamic-rows-container .section-row-inputs');
-      globalCoursesDataset = [];
-      
-      rows.forEach(row => {
-        globalCoursesDataset.push({
-          name: row.querySelector('.row-name').value,
-          weight: parseFloat(row.querySelector('.row-weight').value) / 100 || 0,
-          currentAvg: parseFloat(row.querySelector('.row-avg').value) || 0,
-          weightCompleted: parseFloat(row.querySelector('.row-wcomp').value) / 100 || 0,
-          weightRemaining: parseFloat(row.querySelector('.row-wrem').value) / 100 || 0
+    function readRowsFromDOM() {
+      const DOMrows = document.querySelectorAll('#table-rows-hook .course-row-item');
+      globalCourses = [];
+      DOMrows.forEach(row => {
+        globalCourses.push({
+          name: row.querySelector('.inp-name').value,
+          weight: parseFloat(row.querySelector('.inp-weight').value) / 100 || 0,
+          currentAvg: parseFloat(row.querySelector('.inp-avg').value) || 0,
+          weightCompleted: parseFloat(row.querySelector('.inp-wcomp').value) / 100 || 0,
+          weightRemaining: parseFloat(row.querySelector('.inp-wrem').value) / 100 || 0
         });
       });
-      runRecalculations();
+      runCalculations();
     }
 
-    async function saveAllCurrentRows() {
-      captureRowData();
+    async function saveRowsToServer() {
+      readRowsFromDOM();
       await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courses: globalCoursesDataset })
+        body: JSON.stringify({ courses: globalCourses })
       });
-      alert("Grades successfully synced with server database!");
+      alert("Layout synced successfully!");
     }
 
-    async function commitScaleUpdates() {
-      Object.keys(globalGradingScale).forEach(key => {
-        const el = document.getElementById(`sc-${key}`); if(el) globalGradingScale[key] = parseFloat(el.value);
+    async function saveScaleToServer() {
+      Object.keys(globalScale).forEach(key => {
+        const el = document.getElementById(`sc-${key}`); if(el) globalScale[key] = parseFloat(el.value);
       });
       await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gradingScale: globalGradingScale })
+        body: JSON.stringify({ gradingScale: globalScale })
       });
-      runRecalculations();
+      runCalculations();
     }
 
-    function runRecalculations() {
-      const targetGoal = parseFloat(document.getElementById('target-goal').value) || 90;
-      let aggregatedCompletedWeight = 0;
-      let runningWeightedScoreSum = 0;
+    function runCalculations() {
+      const targetGoal = parseFloat(document.getElementById('overall-target-goal').value) || 90;
+      let totalCompletedWeight = 0;
+      let earnedPointsSum = 0;
 
-      globalCoursesDataset.forEach((course, index) => {
-        aggregatedCompletedWeight += course.weightCompleted;
-        runningWeightedScoreSum += (course.currentAvg * course.weightCompleted);
+      globalCourses.forEach((course, index) => {
+        totalCompletedWeight += course.weightCompleted;
+        earnedPointsSum += (course.currentAvg * course.weightCompleted);
 
-        const outElement = document.getElementById(`row-target-calc-${index}`);
-        if (!outElement) return;
+        const out = document.getElementById(`target-feedback-${index}`);
+        if (!out) return;
 
         if (course.weightRemaining <= 0) {
-          outElement.innerText = `Category Complete. Contribution to Grade: ${(course.currentAvg * course.weightCompleted * 100).toFixed(1)}%`;
+          out.innerText = `Category complete. Segment points contribution: ${(course.currentAvg * course.weightCompleted * 100).toFixed(1)}%`;
           return;
         }
 
-        const targetAllocated = (targetGoal / 100) * course.weight;
-        const requiredScore = ((targetAllocated - ((course.currentAvg / 100) * course.weightCompleted)) / course.weightRemaining) * 100;
+        const targetPoints = (targetGoal / 100) * course.weight;
+        const scoreNeeded = ((targetPoints - ((course.currentAvg / 100) * course.weightCompleted)) / course.weightRemaining) * 100;
 
-        if (requiredScore <= 0) {
-          outElement.innerText = `🎯 Target Safe! You can score a 0% on remaining assignments here and still hit your goal.`;
-        } else if (requiredScore > 100) {
-          outElement.innerText = `⚠️ Extra credit needed: You need a ${requiredScore.toFixed(1)}% on remaining assignments here to stay on pace.`;
+        if (scoreNeeded <= 0) {
+          out.innerText = `🎯 Target reached! You can score a 0% on the rest of this work and hit your goal.`;
+        } else if (scoreNeeded > 100) {
+          out.innerText = `⚠️ Extra credit needed: You need a ${scoreNeeded.toFixed(1)}% on remaining assignments here to reach your goal.`;
         } else {
-          outElement.innerText = `📈 You need to average ${requiredScore.toFixed(1)}% on your remaining ${course.name} assignments.`;
+          out.innerText = `📈 You need to average a ${scoreNeeded.toFixed(1)}% on your remaining ${course.name} assignments.`;
         }
       });
 
-      // Calculate Running Overall Score
-      let finalOverallAverage = 0;
-      if (aggregatedCompletedWeight > 0) {
-        finalOverallAverage = (runningWeightedScoreSum / aggregatedCompletedWeight);
-      }
+      let overallAverage = 0;
+      if (totalCompletedWeight > 0) overallAverage = (earnedPointsSum / totalCompletedWeight);
       
-      document.getElementById('live-percentage-display').innerText = `${finalOverallAverage.toFixed(1)}%`;
+      document.getElementById('score-pct-badge').innerText = `${overallAverage.toFixed(1)}%`;
       
-      // Determine Letter Rank
-      let matchedLetter = 'F';
-      const sortedRanks = Object.keys(globalGradingScale).sort((a,b) => globalGradingScale[b] - globalGradingScale[a]);
-      for (let rank of sortedRanks) {
-        if (finalOverallAverage >= globalGradingScale[rank]) {
-          matchedLetter = rank.replace('plus','+').replace('minus','-');
+      let letter = 'F';
+      const sortedKeys = Object.keys(globalScale).sort((a,b) => globalScale[b] - globalScale[a]);
+      for (let k of sortedKeys) {
+        if (overallAverage >= globalScale[k]) {
+          letter = k.replace('plus','+').replace('minus','-');
           break;
         }
       }
-      document.getElementById('live-letter-display').innerText = matchedLetter;
+      document.getElementById('score-letter-badge').innerText = letter;
     }
 
-    // Drag Drop Config
     const dropZone = document.getElementById('drop-zone');
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-active'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-active'));
@@ -495,23 +378,19 @@
         reader.onload = async function(evt) {
           try {
             const parsed = JSON.parse(evt.target.result);
-            if (Array.isArray(parsed)) {
-              globalCoursesDataset = parsed;
-              await fetch('/api/userdata', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ courses: globalCoursesDataset })
-              });
-              renderInteractiveRows();
-              alert("New curriculum parsed and updated successfully!");
+            if(Array.isArray(parsed)) {
+              globalCourses = parsed;
+              await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ courses: globalCourses }) });
+              buildRowsInDOM();
+              alert("Syllabus configuration applied successfully!");
             }
-          } catch(err) { alert("Invalid file structure parsed."); }
+          } catch(e) { alert("Invalid structure file."); }
         };
         reader.readAsText(file);
       }
     });
 
-    window.onload = checkActiveSession;
+    window.onload = checkSession;
   </script>
 </body>
 </html>
