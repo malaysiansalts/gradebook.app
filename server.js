@@ -9,15 +9,13 @@ const jwt = require("jsonwebtoken");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Make sure the data directory exists (it won't be present after a fresh
-// git clone/deploy, since empty folders aren't tracked by git).
+// Make sure the data directory exists
 const DATA_DIR = path.join(__dirname, "data");
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// JWT secret: use env var in production. A random one is generated on first
-// boot and persisted to disk so restarts don't invalidate existing sessions.
+// JWT secret setup
 const SECRET_PATH = path.join(__dirname, "data", "jwt-secret.txt");
 function getSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
@@ -61,6 +59,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+// Route to handle browser automatic requests for favicon/tab icon
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "favicon.ico"));
+});
+
 function requireAuth(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Not logged in." });
@@ -77,10 +80,6 @@ function isValidEmail(email) {
   return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// The account matching ADMIN_EMAIL (set in your hosting provider's
-// environment variables) is flagged as the developer/owner account. This is
-// computed on the fly rather than stored, so changing the env var instantly
-// updates who's marked as the developer without touching stored data.
 function isAdminEmail(email) {
   const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
   return !!adminEmail && email === adminEmail;
@@ -115,48 +114,4 @@ app.post("/api/register", (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body || {};
-  const normalizedEmail = (email || "").trim().toLowerCase();
-  const user = db.users.find((u) => u.email === normalizedEmail);
-  if (!user || !bcrypt.compareSync(password || "", user.passwordHash)) {
-    return res.status(401).json({ error: "Incorrect email or password." });
-  }
-  const token = jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: "30d" });
-  res.cookie("token", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
-  res.json({ email: user.email, isAdmin: isAdminEmail(user.email) });
-});
-
-app.post("/api/logout", (req, res) => {
-  res.clearCookie("token");
-  res.json({ ok: true });
-});
-
-app.get("/api/me", requireAuth, (req, res) => {
-  const user = db.users.find((u) => u.id === req.userId);
-  if (!user) return res.status(401).json({ error: "Not logged in." });
-  res.json({ email: user.email, isAdmin: isAdminEmail(user.email) });
-});
-
-// ---------- course data routes ----------
-app.get("/api/courses", requireAuth, (req, res) => {
-  const courses = db.coursesByUser[req.userId] || [];
-  res.json({ courses });
-});
-
-app.put("/api/courses", requireAuth, (req, res) => {
-  const { courses } = req.body || {};
-  if (!Array.isArray(courses)) {
-    return res.status(400).json({ error: "Invalid course data." });
-  }
-  db.coursesByUser[req.userId] = courses;
-  saveDB(db);
-  res.json({ ok: true });
-});
-
-app.listen(PORT, () => {
-  console.log(`Gradebook server running on http://localhost:${PORT}`);
-});
+  const { email, password } = req.
