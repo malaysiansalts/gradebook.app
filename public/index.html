@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Gradebook Portal - Local Dark Mode</title>
+  <title>Premium Gradebook Portal - Elite Dark Mode</title>
   <style>
     :root {
       --bg-space: #090d16;
@@ -14,8 +14,8 @@
       --text-main: #f1f5f9;
       --text-muted: #94a3b8;
       --border-soft: #1e293b;
-      --radius-lg: 16px;
-      --radius-md: 10px;
+      --radius-lg: 12px;
+      --radius-md: 8px;
     }
 
     body {
@@ -27,10 +27,37 @@
     }
 
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes slideDownNotification {
+      0% { transform: translate(-50%, -100%); opacity: 0; }
+      15% { transform: translate(-50%, 20px); opacity: 1; }
+      85% { transform: translate(-50%, 20px); opacity: 1; }
+      100% { transform: translate(-50%, -100%); opacity: 0; }
+    }
+
+    /* In-App Fluid Toast Notification Banner */
+    #toast-notification {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 13px;
+      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .show-toast { animation: slideDownNotification 3s ease-in-out; }
+
+    /* Auth Styling */
     .auth-wrapper {
       display: flex;
       justify-content: center;
@@ -38,67 +65,90 @@
       min-height: 100vh;
       background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent);
     }
-    
     .auth-card {
       background: var(--card-bg);
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-lg);
-      padding: 40px;
-      max-width: 400px;
+      padding: 30px;
+      max-width: 380px;
       width: 100%;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
       animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    .auth-header { text-align: center; margin-bottom: 20px; }
+    .auth-header h2 { font-size: 24px; font-weight: 700; color: var(--brand-primary); margin: 0; }
+    .auth-header p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 13px; }
 
-    .auth-header { text-align: center; margin-bottom: 24px; }
-    .auth-header h2 { font-size: 26px; font-weight: 700; color: var(--brand-primary); margin: 0; }
-    .auth-header p { margin: 6px 0 0 0; color: var(--text-muted); font-size: 14px; }
-
-    .dashboard-wrapper { max-width: 1200px; margin: 40px auto; padding: 0 24px; animation: fadeInUp 0.5s ease-out; }
-    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    /* Main Grid Frame Configurations */
+    .dashboard-wrapper { max-width: 1150px; margin: 24px auto; padding: 0 20px; animation: fadeInUp 0.4s ease-out; }
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     
-    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: var(--text-muted); }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; color: var(--text-muted); }
+    
+    /* Global Select & Input Re-styling to keep them on brand */
     input, select {
       width: 100%;
-      padding: 12px 16px;
-      margin-bottom: 16px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
       border: 1px solid var(--border-soft);
       border-radius: var(--radius-md);
       box-sizing: border-box;
       background-color: #0f172a;
-      font-size: 14px;
+      font-size: 13px;
       color: #ffffff;
       transition: all 0.15s ease-in-out;
     }
-    input:focus, select:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); }
+    input:focus, select:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+    
+    /* Vibe protection for select lists and popovers */
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2394a3b8' d='M0 0l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 30px;
+      cursor: pointer;
+    }
+    select option { background-color: #0f172a; color: #ffffff; }
 
     button {
       background: var(--brand-accent);
       color: #ffffff;
       border: none;
-      padding: 12px 24px;
+      padding: 8px 16px;
       border-radius: var(--radius-md);
       cursor: pointer;
       font-weight: 600;
-      transition: all 0.2s ease;
+      font-size: 13px;
+      transition: all 0.15s ease;
     }
     button:hover { background: var(--brand-accent-hover); transform: translateY(-1px); }
-    .secondary-btn { background: none; color: var(--text-muted); border: 1px solid var(--border-soft); width: 100%; margin-top: 10px; }
+    .secondary-btn { background: none; color: var(--text-muted); border: 1px solid var(--border-soft); width: 100%; margin-top: 8px; }
     .secondary-btn:hover { background: #1e293b; color: #ffffff; }
 
-    .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+    .grid-container { display: grid; grid-template-columns: 1.9fr 1.1fr; gap: 20px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 32px; }
-    .row-item-3col { display: grid; grid-template-columns: 3fr 2fr 40px; gap: 16px; align-items: center; margin-bottom: 12px; }
+    /* Compact minimized cards */
+    .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 20px; }
+    .card h3 { font-size: 15px; font-weight: 700; color: var(--brand-primary); margin: 0 0 12px 0; }
+    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 30px; gap: 10px; align-items: center; margin-bottom: 6px; }
+    .row-item-3col input, .row-item-3col select { margin-bottom: 0; }
     
-    .remove-btn { background: none; color: var(--text-muted); font-size: 18px; border: none; cursor: pointer; }
+    .remove-btn { background: none; color: var(--text-muted); font-size: 16px; border: none; cursor: pointer; text-align: center; }
     .remove-btn:hover { color: #ef4444; }
     .hidden { display: none !important; }
-    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    
+    /* Matrix layout optimized for full collection array */
+    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .scale-matrix div { background: #0f172a; padding: 6px; border: 1px solid var(--border-soft); border-radius: var(--radius-md); text-align: center; }
+    .scale-matrix label { margin-bottom: 2px; font-size: 11px; }
+    .scale-matrix input { margin-bottom: 0; padding: 4px; text-align: center; background: transparent; border: none; font-size: 14px; font-weight: 700; }
   </style>
 </head>
 <body>
+
+  <div id="toast-notification">Matrix configuration committed successfully!</div>
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
@@ -107,14 +157,14 @@
         <p>Access Local Grade Analytics Terminal</p>
       </div>
 
-      <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px;" class="hidden">Authentication processing error. Check parameters.</div>
+      <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 12px; text-align: center; margin-bottom: 12px;" class="hidden">Authentication processing error. Check parameters.</div>
 
       <form onsubmit="event.preventDefault(); executeAuth();">
         <label>Email Address</label>
         <input type="email" id="auth-email" placeholder="you@academy.com" required>
         <label>Password</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%; margin-top: 8px;">Authenticate</button>
+        <button type="submit" style="width:100%; margin-top: 4px; padding: 10px;">Authenticate</button>
       </form>
       
       <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
@@ -124,27 +174,27 @@
   <div id="app-view" class="dashboard-wrapper hidden">
     <div class="top-nav">
       <div>
-        <h1 style="margin:0; font-size: 28px;">Workspace Matrix</h1>
-        <p id="current-user-tag" style="color: var(--text-muted); font-size:14px; margin:4px 0 0 0;"></p>
+        <h1 style="margin:0; font-size: 24px;">Workspace Matrix</h1>
+        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; margin:2px 0 0 0;"></p>
       </div>
-      <button onclick="logOutUser()" style="background: #1e293b; border: 1px solid var(--border-soft);">Disconnect Session</button>
+      <button onclick="logOutUser()" style="background: #1e293b; border: 1px solid var(--border-soft); padding: 6px 14px;">Disconnect Session</button>
     </div>
 
-    <div class="card" style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
-      <div style="flex: 120;">
-        <label>Active Subject Course</label>
-        <select id="class-dropdown" onchange="switchActiveClass()"></select>
+    <div class="card" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; padding: 12px;">
+      <div style="flex: 1.2; min-width: 150px;">
+        <label>Active Course</label>
+        <select id="class-dropdown" onchange="switchActiveClass()" style="margin-bottom:0;"></select>
       </div>
-      <div style="flex: 100;">
+      <div style="flex: 1; min-width: 150px;">
         <label>Rename Course</label>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 6px;">
           <input type="text" id="rename-class-input" style="margin-bottom:0;">
           <button onclick="renameCurrentSubject()" style="background: #334155;">Rename</button>
         </div>
       </div>
-      <div style="display: flex; gap: 8px; align-items: flex-end;">
+      <div style="display: flex; gap: 6px; align-items: flex-end;">
         <button onclick="deleteCurrentClassChannel()" style="background: #ef4444; white-space: nowrap;">Delete Class</button>
-        <input type="text" id="new-class-input" placeholder="New Course Code" style="width:160px; margin-bottom:0;">
+        <input type="text" id="new-class-input" placeholder="Code (e.g., PHY2)" style="width:120px; margin-bottom:0;">
         <button onclick="createNewClassChannel()">+ Add Class</button>
       </div>
     </div>
@@ -154,45 +204,45 @@
         <div class="card">
           <h3>1. Category Weights Assignment</h3>
           <div id="category-rows-hook"></div>
-          <button onclick="appendBlankCategoryRow()" style="background:#1e293b; margin-top:10px;">+ Add Category</button>
+          <button onclick="appendBlankCategoryRow()" style="background:#1e293b; margin-top:8px; padding: 6px 12px; font-size: 12px;">+ Add Category</button>
         </div>
 
         <div class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3 style="margin:0;">2. Log Entries</h3>
-            <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="width:200px; margin-bottom:0;"></select>
+            <select id="category-filter-dropdown" onchange="buildUiElementsFromMemory()" style="width:160px; margin-bottom:0; padding: 6px 10px;"></select>
           </div>
           <div id="assignment-rows-hook"></div>
-          <div style="display:flex; gap:12px; margin-top:20px;">
-            <button onclick="appendBlankAssignmentRow()" style="background:#1e293b;">+ Add Assignment</button>
-            <button onclick="saveAllCurrentDataToServer()">Save Configuration Matrix</button>
+          <div style="display:flex; gap:10px; margin-top:12px;">
+            <button onclick="appendBlankAssignmentRow()" style="background:#1e293b; padding: 6px 12px; font-size: 12px;">+ Add Assignment</button>
+            <button onclick="saveAllCurrentDataToServer()" style="padding: 6px 14px; font-size: 12px;">Save Configuration Matrix</button>
           </div>
         </div>
 
         <div class="card">
           <h3>3. Target Test/Exam Grade Needed Calculator</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
             <div>
               <label>Target Class Grade %</label>
-              <input type="number" id="target-class-grade" value="90">
+              <input type="number" id="target-class-grade" value="90" style="margin-bottom:0;">
             </div>
             <div>
               <label>Upcoming Test Category</label>
               <select id="target-test-category" style="margin-bottom:0;"></select>
             </div>
             <div style="display:flex; align-items:flex-end;">
-              <button onclick="calculateRequiredExamScore()" style="width:100%; margin-bottom:16px;">Calculate Needed Grade</button>
+              <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 8px 0;">Calculate Grade</button>
             </div>
           </div>
-          <p id="target-result-badge" style="color:var(--brand-accent); font-weight:bold; text-align:center; margin-top:10px;"></p>
+          <p id="target-result-badge" style="color:var(--brand-accent); font-weight:700; text-align:center; margin:10px 0 0 0; font-size: 13px;"></p>
         </div>
       </div>
 
       <div>
-        <div class="card" style="text-align:center; background: #0f172a; border-color: var(--brand-accent);">
-          <span style="color: var(--text-muted); font-size:14px;">Weighted Matrix Yield</span>
-          <h1 id="score-pct-badge" style="font-size:56px; margin:10px 0; color:#ffffff;">0.0%</h1>
-          <div id="score-letter-badge" style="font-weight:bold; font-size:24px; color: var(--brand-accent);">F</div>
+        <div class="card" style="text-align:center; background: #0f172a; border-color: var(--brand-accent); padding: 16px;">
+          <span style="color: var(--text-muted); font-size:12px; font-weight: 600; text-transform: uppercase;">Weighted Matrix Yield</span>
+          <h1 id="score-pct-badge" style="font-size:48px; margin:6px 0; color:#ffffff; font-weight: 800;">0.0%</h1>
+          <div id="score-letter-badge" style="font-weight:800; font-size:20px; color: var(--brand-accent);">F</div>
         </div>
 
         <div class="card">
@@ -204,8 +254,15 @@
             <div><label>B+</label><input type="number" id="sc-Bplus" value="87"></div>
             <div><label>B</label><input type="number" id="sc-B" value="83"></div>
             <div><label>B-</label><input type="number" id="sc-Bminus" value="80"></div>
+            <div><label>C+</label><input type="number" id="sc-Cplus" value="77"></div>
+            <div><label>C</label><input type="number" id="sc-C" value="73"></div>
+            <div><label>C-</label><input type="number" id="sc-Cminus" value="70"></div>
+            <div><label>D+</label><input type="number" id="sc-Dplus" value="67"></div>
+            <div><label>D</label><input type="number" id="sc-D" value="63"></div>
+            <div><label>D-</label><input type="number" id="sc-Dminus" value="60"></div>
+            <div style="grid-column: span 3;"><label>F Floor</label><input type="number" id="sc-F" value="0"></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; background:#1e293b; margin-top:15px;">Sync Calibration Scale</button>
+          <button onclick="saveScaleToServer()" style="width:100%; background:#1e293b; margin-top:12px; padding: 8px 0;">Sync Calibration Scale</button>
         </div>
       </div>
     </div>
@@ -217,6 +274,13 @@
     let globalClasses = {};
     let activeClassName = "";
 
+    function showToast() {
+      const toast = document.getElementById('toast-notification');
+      toast.classList.remove('show-toast');
+      void toast.offsetWidth; // Trigger reflow to restart animation sequence
+      toast.classList.add('show-toast');
+    }
+
     function toggleAuth() {
       const title = document.getElementById('auth-title');
       currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
@@ -227,7 +291,7 @@
       const res = await fetch('/api/me');
       if(res.ok) {
         const data = await res.json();
-        document.getElementById('current-user-tag').innerText = `Active Session identity: ${data.email}`;
+        document.getElementById('current-user-tag').innerText = `Active Profile Session: ${data.email}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         await loadBackendData();
@@ -253,7 +317,7 @@
       const res = await fetch('/api/userdata');
       if(res.ok) {
         const payload = await res.json();
-        globalScale = payload.gradingScale || {};
+        globalScale = payload.gradingScale || { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 };
         globalClasses = payload.classes || {};
         Object.keys(globalScale).forEach(key => {
           const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
@@ -326,7 +390,7 @@
         assignHook.innerHTML += `
           <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
-            <div style="display:flex; gap: 8px;">
+            <div style="display:flex; gap: 6px;">
               <select class="asm-cat-select" onchange="readUiStateIntoMemory()">${selectOptions}</select>
               <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()">
             </div>
@@ -420,7 +484,7 @@
     async function saveAllCurrentDataToServer() {
       readUiStateIntoMemory();
       await syncDataWithDatabase();
-      alert("Matrix configuration committed successfully!");
+      showToast();
       buildUiElementsFromMemory();
     }
 
@@ -430,7 +494,7 @@
     function switchActiveClass() { activeClassName = document.getElementById('class-dropdown').value; populateCategoryFilters(); buildUiElementsFromMemory(); }
     function renameCurrentSubject() { const n = document.getElementById('rename-class-input').value.trim(); if(n && !globalClasses[n]) { globalClasses[n] = globalClasses[activeClassName]; delete globalClasses[activeClassName]; activeClassName = n; populateClassDropdown(); } }
     async function deleteCurrentClassChannel() { if(confirm("Delete class?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
-    async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); }
+    async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); showToast(); }
 
     window.onload = checkSession;
   </script>
