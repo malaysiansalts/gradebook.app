@@ -3,160 +3,256 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Academic Analytics Console</title>
+  <title>Grade Calc & Tracker</title>
   <style>
+    /* ----------------------------------------------------
+       DESIGN SYSTEM & VARIABLES
+       ---------------------------------------------------- */
     :root {
-      --bg-space: #060913;
-      --card-bg: rgba(15, 23, 42, 0.65);
-      --card-border: rgba(51, 65, 85, 0.5);
-      --brand-accent: #3b82f6;
-      --brand-neon: #60a5fa;
-      --brand-accent-hover: #1d4ed8;
-      --text-main: #f8fafc;
-      --text-muted: #64748b;
-      --input-bg: #090e1a;
+      --bg-main: #0b0f19;
+      --panel-bg: rgba(22, 30, 49, 0.75);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --panel-border-focus: rgba(59, 130, 246, 0.5);
+      
+      --accent-blue: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --accent-success: #10b981;
+      --accent-danger: #ef4444;
+      
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-dark: #64748b;
+      --input-bg: #0d1321;
+      
+      --radius-xl: 16px;
       --radius-lg: 12px;
       --radius-md: 8px;
-      --neon-red: #ef4444;
-      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --radius-sm: 4px;
+      
+      --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* ----------------------------------------------------
+       GLOBAL RESETS & BACKGROUND
+       ---------------------------------------------------- */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
       font-family: var(--font-stack);
-      background-color: var(--bg-space);
-      background-image: 
-        radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.06), transparent 45%),
-        radial-gradient(circle at 15% 80%, rgba(99, 102, 241, 0.04), transparent 40%);
-      background-attachment: fixed;
-      color: var(--text-main);
-      margin: 0;
-      padding: 0;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
       min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      position: relative;
     }
 
-    @keyframes panelEntrance {
-      from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
+    /* Decorative Dynamic Orbs for Visual Depth */
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    body::before {
+      top: -10%;
+      right: -5%;
+      background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);
+    }
+    body::after {
+      bottom: -10%;
+      left: -5%;
+      background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+    }
+
+    /* ----------------------------------------------------
+       ANIMATIONS
+       ---------------------------------------------------- */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
       to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
 
-    @keyframes toastSlideIn {
-      0% { transform: translate(-50%, -40px); opacity: 0; }
-      12% { transform: translate(-50%, 24px); opacity: 1; }
-      88% { transform: translate(-50%, 24px); opacity: 1; }
-      100% { transform: translate(-50%, -40px); opacity: 0; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
+    @keyframes toastInOut {
+      0% { transform: translate(-50%, -50px); opacity: 0; }
+      15% { transform: translate(-50%, 24px); opacity: 1; }
+      85% { transform: translate(-50%, 24px); opacity: 1; }
+      100% { transform: translate(-50%, -50px); opacity: 0; }
+    }
+
+    @keyframes cardPulse {
+      0% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--panel-border); }
+      50% { box-shadow: 0 4px 25px rgba(59,130,246,0.15), 0 0 8px 1px rgba(59,130,246,0.2); }
+      100% { box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--panel-border); }
+    }
+
+    /* ----------------------------------------------------
+       NOTIFICATIONS & TOASTS
+       ---------------------------------------------------- */
     #toast-notification {
       position: fixed;
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.9);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 12px 28px;
+      background: #10b981;
+      color: #ffffff;
+      padding: 14px 32px;
       border-radius: var(--radius-md);
       font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 0.3px;
+      font-size: 14px;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
       z-index: 10000;
       opacity: 0;
       pointer-events: none;
-      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
     }
-    .show-toast { animation: toastSlideIn 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .show-toast { animation: toastInOut 3.5s ease-in-out forwards; }
 
+    /* ----------------------------------------------------
+       AUTH COMPONENT STYLING
+       ---------------------------------------------------- */
     .auth-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
+      padding: 24px;
     }
+
     .auth-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: var(--radius-lg);
-      padding: 40px 32px;
-      max-width: 400px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      max-width: 420px;
       width: 100%;
-      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-      animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .auth-header h2 { font-size: 24px; font-weight: 700; color: var(--text-main); margin: 0; }
-    .auth-header p { margin: 6px 0 28px 0; color: var(--text-muted); font-size: 14px; }
 
-    .dashboard-wrapper { 
-      max-width: 1200px; 
-      margin: 40px auto; 
-      padding: 0 24px; 
-      animation: panelEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    .auth-header h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
     }
-    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-    
-    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
-    
-    input {
-      width: 100%;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      box-sizing: border-box;
-      background-color: var(--input-bg);
+
+    .auth-header p {
+      color: var(--text-secondary);
       font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    /* ----------------------------------------------------
+       UI REUSABLE STYLING (INPUTS, DROPDOWNS, BUTTONS)
+       ---------------------------------------------------- */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 16px;
+      background-color: var(--input-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
       color: #ffffff;
-      transition: all 0.2s ease;
-    }
-    input:focus { 
-      outline: none; 
-      border-color: var(--brand-neon); 
-      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+      font-size: 14px;
+      font-family: inherit;
+      transition: var(--transition-smooth);
     }
 
+    input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Hide Steppers on Native Numeric Form Inputs */
     input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
 
+    /* Custom Input Stepper Controls */
     .stepper-container {
       display: flex;
       align-items: center;
       background-color: var(--input-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--panel-border);
       border-radius: var(--radius-md);
-      margin-bottom: 12px;
       overflow: hidden;
+      transition: var(--transition-smooth);
     }
-    .stepper-container:focus-within { border-color: var(--brand-neon); }
-    .stepper-container input { border: none !important; margin-bottom: 0 !important; text-align: center; padding: 10px 4px; background: transparent; }
-    
+    .stepper-container:focus-within {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .stepper-container input {
+      border: none !important;
+      background: transparent !important;
+      margin-bottom: 0 !important;
+      text-align: center;
+      box-shadow: none !important;
+    }
     .stepper-btn {
-      background: rgba(30, 41, 59, 0.3);
-      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
       border: none;
-      width: 36px;
-      height: 38px;
+      color: var(--text-secondary);
+      width: 40px;
+      height: 42px;
+      font-size: 18px;
       cursor: pointer;
-      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
       user-select: none;
-      transition: background 0.15s;
+      transition: var(--transition-smooth);
     }
-    .stepper-btn:hover { background: rgba(59, 130, 246, 0.15); color: var(--brand-neon); }
+    .stepper-btn:hover {
+      background: rgba(59, 130, 246, 0.15);
+      color: #ffffff;
+    }
 
-    .vibe-dropdown { position: relative; display: inline-block; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
+    /* Clean Dynamic Dropdowns Layout */
+    .vibe-dropdown {
+      position: relative;
+      width: 100%;
+    }
     .vibe-dropdown-select {
       background-color: var(--input-bg);
       color: #ffffff;
-      padding: 10px 34px 10px 14px;
-      border: 1px solid var(--card-border);
+      padding: 12px 16px;
+      border: 1px solid var(--panel-border);
       border-radius: var(--radius-md);
       cursor: pointer;
       font-size: 14px;
@@ -164,235 +260,466 @@
       justify-content: space-between;
       align-items: center;
       user-select: none;
-      transition: border 0.2s ease;
+      transition: var(--transition-smooth);
     }
-    .vibe-dropdown-select:hover { border-color: rgba(96, 165, 250, 0.3); }
+    .vibe-dropdown-select:hover {
+      border-color: rgba(255,255,255,0.2);
+    }
     .vibe-dropdown-select::after {
       content: "";
-      border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid var(--text-muted);
-      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 5px solid var(--text-secondary);
+      transition: transform 0.2s ease;
     }
-    .vibe-dropdown.active .vibe-dropdown-select::after { transform: translateY(-50%) rotate(180deg); }
+    .vibe-dropdown.active .vibe-dropdown-select::after {
+      transform: rotate(180deg);
+    }
     .vibe-dropdown-options {
-      position: absolute; top: 100%; left: 0; right: 0;
-      background-color: #0b111e;
-      border: 1px solid rgba(59, 130, 246, 0.2);
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background-color: #0f172a;
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: var(--radius-md);
-      margin-top: 6px; padding: 6px 0; z-index: 1000; display: none;
-      max-height: 220px; overflow-y: auto;
-      box-shadow: 0 16px 36px -6px rgba(0,0,0,0.6);
+      z-index: 1000;
+      max-height: 250px;
+      overflow-y: auto;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
-    .vibe-dropdown-option { padding: 10px 14px; color: var(--text-main); cursor: pointer; font-size: 14px; }
-    .vibe-dropdown-option:hover { background-color: rgba(59, 130, 246, 0.1); color: #ffffff; }
-    .vibe-dropdown.active .vibe-dropdown-options { display: block; }
-
-    button {
-      background: linear-gradient(135deg, var(--brand-accent) 0%, #1d4ed8 100%);
-      color: #ffffff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: var(--radius-md);
+    .vibe-dropdown-option {
+      padding: 12px 16px;
+      color: var(--text-secondary);
       cursor: pointer;
+      font-size: 14px;
+      transition: var(--transition-smooth);
+    }
+    .vibe-dropdown-option:hover {
+      background-color: rgba(59, 130, 246, 0.15);
+      color: #ffffff;
+      padding-left: 20px;
+    }
+    .vibe-dropdown.active .vibe-dropdown-options {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    /* Core Action Buttons */
+    button {
+      font-family: inherit;
       font-weight: 600;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+    .primary-btn {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #1d4ed8 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+    }
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    .secondary-btn {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border: 1px solid var(--panel-border);
+    }
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .danger-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .danger-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* ----------------------------------------------------
+       DASHBOARD STRUCTURE METRICS
+       ---------------------------------------------------- */
+    .dashboard-wrapper {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      animation: slideUp 0.5s ease-out forwards;
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+    .top-nav h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .top-nav p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Course Management Toolbar Container */
+    .toolbar-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 32px;
+      display: grid;
+      grid-template-columns: 1.5fr 1.2fr 2fr;
+      gap: 20px;
+      align-items: flex-end;
+      backdrop-filter: blur(10px);
+    }
+    @media (max-width: 900px) {
+      .toolbar-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Primary Container Cards */
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 1.9fr 1.1fr;
+      gap: 32px;
+    }
+    @media (max-width: 1024px) {
+      .grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 32px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: var(--transition-smooth);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+    }
+    .toggle-icon {
+      color: var(--text-dark);
       font-size: 13px;
-      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.04);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition-smooth);
     }
-    button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-    
-    .secondary-btn { background: rgba(30, 41, 59, 0.4); color: var(--text-main); border: 1px solid var(--card-border); width: 100%; margin-top: 10px; }
-    .secondary-btn:hover { background: rgba(30, 41, 59, 0.7); color: #ffffff; }
-
-    .grid-container { display: grid; grid-template-columns: 1.95fr 1.05fr; gap: 28px; }
-    @media (max-width: 950px) { .grid-container { grid-template-columns: 1fr; gap: 20px; } }
-
-    .card { 
-      background: var(--card-bg); 
-      border: 1px solid var(--card-border); 
-      border-radius: var(--radius-lg); 
-      padding: 24px; 
-      margin-bottom: 24px; 
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+    .card:hover .toggle-icon {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.08);
     }
-    
-    .card-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
-    .card-header h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .toggle-icon { color: var(--text-muted); font-size: 12px; font-family: monospace; }
-    
-    .card-content { margin-top: 20px; }
-    .card.minimized .card-content { display: none !important; }
 
-    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 36px; gap: 14px; align-items: center; margin-bottom: 10px; }
-    .row-item-3col input, .row-item-3col .vibe-dropdown, .row-item-3col .stepper-container { margin-bottom: 0; }
-    
-    .remove-btn { background: none; color: var(--text-muted); font-size: 14px; border: none; cursor: pointer; text-align: center; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s; }
-    .remove-btn:hover { color: var(--neon-red); background: rgba(239, 68, 68, 0.1); }
-    .hidden { display: none !important; }
-    
-    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .scale-matrix div { background: rgba(9, 14, 26, 0.6); padding: 10px 4px; border: 1px solid var(--card-border); border-radius: var(--radius-md); text-align: center; }
-    .scale-matrix label { margin-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--brand-neon); }
-    
-    .scale-matrix-field { display: flex; align-items: center; justify-content: center; margin-top: 4px; }
-    .scale-matrix input { margin-bottom: 0; padding: 2px; text-align: center; background: transparent; border: none; font-size: 15px; font-weight: 700; width: 42px; color: #ffffff; }
-    .scale-matrix input:focus { box-shadow: none; background: transparent; }
-    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 0 6px; user-select: none; }
-    .matrix-step-btn:hover { color: #ffffff; }
+    .card-content {
+      margin-top: 24px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .card.minimized .card-content {
+      display: none !important;
+    }
 
-    .yield-display-panel {
-      text-align: center; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12), transparent 75%), #090e1a; 
-      border: 1px solid rgba(59, 130, 246, 0.25); padding: 32px 20px;
+    /* Row Builders inside lists */
+    .row-item {
+      display: grid;
+      grid-template-columns: 3.5fr 2.5fr 44px;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+      animation: slideUp 0.25s ease-out;
+    }
+    .row-item input, .row-item .vibe-dropdown, .row-item .stepper-container {
+      margin-bottom: 0;
+    }
+
+    .remove-btn {
+      background: transparent;
+      color: var(--text-dark);
+      font-size: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+    .remove-btn:hover {
+      color: var(--accent-danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* ----------------------------------------------------
+       SUMMARY GRADE DISPLAY SIDEBAR
+       ---------------------------------------------------- */
+    .summary-card {
+      text-align: center;
+      background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15), transparent 75%), #111827;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 40px 24px;
+      animation: cardPulse 8s infinite ease-in-out;
+    }
+    .summary-card span {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+    .summary-card h1 {
+      font-size: 64px;
+      font-weight: 900;
+      margin: 12px 0;
+      letter-spacing: -2px;
+      color: #ffffff;
+    }
+    .letter-grade {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent-blue);
+    }
+
+    /* Grading Scale Threshold Form Grid Matrix */
+    .scale-matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .scale-matrix-grid div {
+      background: rgba(13, 19, 33, 0.5);
+      padding: 12px 8px;
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+    .scale-matrix-grid label {
+      margin-bottom: 4px;
+      color: var(--accent-blue);
+      font-weight: 700;
+    }
+    .matrix-field-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .scale-matrix-grid input {
+      background: transparent;
+      border: none;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      width: 44px;
+      padding: 2px;
+    }
+    .scale-matrix-grid input:focus {
+      box-shadow: none;
+    }
+    .matrix-inline-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dark);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+    .matrix-inline-btn:hover {
+      color: #ffffff;
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
 
-  <div id="toast-notification">Changes successfully committed to ledger.</div>
+  <div id="toast-notification">Changes saved!</div>
 
   <div id="auth-view" class="auth-wrapper">
     <div class="auth-card">
       <div class="auth-header">
-        <h2 id="auth-title">Authorized Portal Access</h2>
-        <p>Establish terminal session to view tracking database</p>
+        <h2 id="auth-title">Welcome</h2>
+        <p>Sign in or create an account to start tracking grades</p>
       </div>
-      <div id="auth-error" style="color: var(--neon-red); font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px;" class="hidden">Access denied. Verify user credentials.</div>
-      <form onsubmit="event.preventDefault(); executeAuth();">
-        <label>Identity Email</label>
-        <input type="email" id="auth-email" placeholder="user@domain.com" required>
-        <label>Security Phrase</label>
-        <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%; margin-top: 8px; padding: 12px; font-size: 14px;">Verify Credentials</button>
+      <div id="auth-error" style="color: var(--accent-danger); font-weight: 600; font-size: 14px; text-align: center; margin-bottom: 16px;" class="hidden">An error occurred. Please check details and retry.</div>
+      <form onsubmit="event.preventDefault(); runAuthSubmit();">
+        <div style="margin-bottom: 16px;">
+          <label>Email Address</label>
+          <input type="email" id="auth-email" placeholder="name@example.com" required>
+        </div>
+        <div style="margin-bottom: 24px;">
+          <label>Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••••••" required>
+        </div>
+        <button type="submit" class="primary-btn" style="width:100%; padding: 14px;">Continue</button>
       </form>
-      <button class="secondary-btn" onclick="toggleAuth()" style="padding: 10px;">Switch Action Mode</button>
+      <button class="secondary-btn" onclick="toggleAuthMode()" style="width: 100%; margin-top: 12px; padding: 10px;">Switch Login / Sign Up</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
     <div class="top-nav">
       <div>
-        <h1 style="margin:0; font-size: 24px; font-weight: 700; letter-spacing: -0.3px;">Academic Ledger</h1>
-        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; margin:4px 0 0 0; font-family: monospace;"></p>
+        <h1>Dashboard</h1>
+        <p id="current-user-tag"></p>
       </div>
-      <button onclick="logOutUser()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px;">Terminate Session</button>
+      <button onclick="logoutActiveSession()" class="secondary-btn" style="padding: 10px 16px;">Log Out</button>
     </div>
 
-    <div class="card" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; padding: 16px;">
-      <div style="flex: 1.2; min-width: 180px;">
-        <label>Target Course Profile</label>
+    <div class="toolbar-card">
+      <div>
+        <label>Current Class</label>
         <div class="vibe-dropdown" id="class-dropdown-wrapper">
-          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Course Profile</div>
+          <div class="vibe-dropdown-select" id="class-dropdown-label">Select Class</div>
           <div class="vibe-dropdown-options" id="class-dropdown-options"></div>
         </div>
       </div>
-      <div style="flex: 1; min-width: 180px;">
-        <label>Modify Label</label>
+      <div>
+        <label>Rename Class</label>
         <div style="display: flex; gap: 8px;">
           <input type="text" id="rename-class-input" style="margin-bottom:0;">
-          <button onclick="renameCurrentSubject()" style="background: #1e293b;">Apply</button>
+          <button onclick="renameActiveSubject()" class="secondary-btn" style="padding: 0 16px;">Save</button>
         </div>
       </div>
-      <div style="display: flex; gap: 8px; align-items: flex-end;">
-        <button onclick="deleteCurrentClassChannel()" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #f87171; white-space: nowrap;">Purge Profile</button>
-        <input type="text" id="new-class-input" placeholder="Course Code" style="width:130px; margin-bottom:0;">
-        <button onclick="createNewClassChannel()">+ Create Profile</button>
+      <div>
+        <label>Add New Class</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="new-class-input" placeholder="e.g. AP Calc" style="margin-bottom:0;">
+          <button onclick="createNewClassChannel()" class="primary-btn" style="white-space: nowrap;">+ Add</button>
+          <button onclick="deleteActiveCourseChannel()" class="danger-btn" style="white-space: nowrap;">Delete Class</button>
+        </div>
       </div>
     </div>
 
-    <div class="grid-container">
+    <div class="grid-layout">
+      
       <div>
         <div class="card" id="card-weights">
           <div class="card-header" onclick="toggleCardMinimize('card-weights')">
-            <h3>1. Distribution Weight Schema</h3>
-            <span class="toggle-icon">[–]</span>
+            <h3>1. Grade Categories & Weights</h3>
+            <span class="toggle-icon">Collapse</span>
           </div>
           <div class="card-content">
             <div id="category-rows-hook"></div>
-            <button onclick="appendBlankCategoryRow()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); margin-top: 10px; padding: 8px 16px; font-size: 12px;">+ Add Category Component</button>
+            <button onclick="appendBlankCategoryRow()" class="secondary-btn" style="margin-top: 12px; padding: 8px 16px; font-size: 13px;">+ Add Category</button>
           </div>
         </div>
 
         <div class="card" id="card-logs">
           <div class="card-header" onclick="toggleCardMinimize('card-logs')">
-            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 20px;">
-              <h3>2. Performance Ledger Entries</h3>
-              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:190px; margin-bottom:0;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 24px;">
+              <h3>2. Assignment Log</h3>
+              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:200px; margin-bottom:0;" onclick="event.stopPropagation()">
                 <div class="vibe-dropdown-select" id="log-filter-label">All Categories</div>
                 <div class="vibe-dropdown-options" id="log-filter-options"></div>
               </div>
             </div>
-            <span class="toggle-icon">[–]</span>
+            <span class="toggle-icon">Collapse</span>
           </div>
           <div class="card-content">
             <div id="assignment-rows-hook"></div>
-            <div style="display:flex; gap:12px; margin-top:16px;">
-              <button onclick="appendBlankAssignmentRow()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px; font-size: 12px;">+ Add Entry</button>
-              <button onclick="saveAllCurrentDataToServer()" style="padding: 8px 18px; font-size: 12px;">Commit Changes</button>
+            <div style="display:flex; gap:12px; margin-top:20px;">
+              <button onclick="appendBlankAssignmentRow()" class="secondary-btn" style="padding: 8px 16px; font-size: 13px;">+ Add Assignment</button>
+              <button onclick="saveWorkspaceStateToDatabase()" class="primary-btn" style="padding: 8px 20px; font-size: 13px;">Save Changes</button>
             </div>
           </div>
         </div>
 
         <div class="card" id="card-calc">
           <div class="card-header" onclick="toggleCardMinimize('card-calc')">
-            <h3>3. Target Requirement Forecasting</h3>
-            <span class="toggle-icon">[–]</span>
+            <h3>3. Target Grade Calculator</h3>
+            <span class="toggle-icon">Collapse</span>
           </div>
           <div class="card-content">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
               <div>
-                <label>Objective Grade %</label>
+                <label>Target Grade %</label>
                 <div class="stepper-container">
-                  <button class="stepper-btn" onclick="stepInputValue('target-class-grade', -1)">−</button>
+                  <button class="stepper-btn" onclick="modifyInputStepValue('target-class-grade', -1)">−</button>
                   <input type="number" id="target-class-grade" value="90">
-                  <button class="stepper-btn" onclick="stepInputValue('target-class-grade', 1)">+</button>
+                  <button class="stepper-btn" onclick="modifyInputStepValue('target-class-grade', 1)">+</button>
                 </div>
               </div>
               <div>
-                <label>Evaluation Group</label>
+                <label>For Category</label>
                 <div class="vibe-dropdown" id="calc-cat-wrapper">
                   <div class="vibe-dropdown-select" id="calc-cat-label">Select Category</div>
                   <div class="vibe-dropdown-options" id="calc-cat-options"></div>
                 </div>
               </div>
               <div style="display:flex; align-items:flex-end;">
-                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 10px 0;">Run Forecast</button>
+                <button onclick="computeTargetRequiredExamScore()" class="primary-btn" style="width:100%; height:42px;">Calculate</button>
               </div>
             </div>
-            <p id="target-result-badge" style="color: var(--brand-neon); font-weight:600; text-align:center; margin-top:16px; font-size: 13px;"></p>
+            <p id="target-result-badge" style="color: var(--accent-blue); font-weight:700; text-align:center; margin-top:20px; font-size: 14px;"></p>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="card yield-display-panel">
-          <span style="color: var(--text-muted); font-size:11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Weighted Aggregate Yield</span>
-          <h1 id="score-pct-badge" style="font-size: 50px; margin: 8px 0; color:#ffffff; font-weight: 700; letter-spacing: -1px;">0.0%</h1>
-          <div id="score-letter-badge" style="font-weight:700; font-size: 20px; color: var(--brand-neon);">F</div>
+        <div class="card summary-card">
+          <span>Current Grade</span>
+          <h1 id="score-pct-badge">0.0%</h1>
+          <div id="score-letter-badge" class="letter-grade">F</div>
         </div>
 
         <div class="card">
-          <h3 style="margin-bottom: 16px; font-size: 13px;">Grading Scale Matrix Thresholds</h3>
-          <div class="scale-matrix">
-            <div><label>A+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',1)">+</button></div></div>
-            <div><label>A</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',1)">+</button></div></div>
-            <div><label>A-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aminus',-1)">-</button><input type="number" id="sc-Aminus" value="90"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aminus',1)">+</button></div></div>
-            <div><label>B+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bplus',-1)">-</button><input type="number" id="sc-Bplus" value="87"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bplus',1)">+</button></div></div>
-            <div><label>B</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-B',-1)">-</button><input type="number" id="sc-B" value="83"><button class="matrix-step-btn" onclick="stepInputValue('sc-B',1)">+</button></div></div>
-            <div><label>B-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bminus',-1)">-</button><input type="number" id="sc-Bminus" value="80"><button class="matrix-step-btn" onclick="stepInputValue('sc-Bminus',1)">+</button></div></div>
-            <div><label>C+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cplus',-1)">-</button><input type="number" id="sc-Cplus" value="77"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cplus',1)">+</button></div></div>
-            <div><label>C</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-C',-1)">-</button><input type="number" id="sc-C" value="73"><button class="matrix-step-btn" onclick="stepInputValue('sc-C',1)">+</button></div></div>
-            <div><label>C-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cminus',-1)">-</button><input type="number" id="sc-Cminus" value="70"><button class="matrix-step-btn" onclick="stepInputValue('sc-Cminus',1)">+</button></div></div>
-            <div><label>D+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',-1)">-</button><input type="number" id="sc-Dplus" value="67"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',1)">+</button></div></div>
-            <div><label>D</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',-1)">-</button><input type="number" id="sc-D" value="63"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',1)">+</button></div></div>
-            <div><label>D-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',1)">+</button></div></div>
-            <div style="grid-column: span 3;"><label>F Floor</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:120px;"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',1)">+</button></div></div>
+          <h3 style="margin-bottom: 20px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Grading Scale Scale</h3>
+          <div class="scale-matrix-grid">
+            <div><label>A+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aplus',1)">+</button></div></div>
+            <div><label>A</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-A',1)">+</button></div></div>
+            <div><label>A-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aminus',-1)">-</button><input type="number" id="sc-Aminus" value="90"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Aminus',1)">+</button></div></div>
+            <div><label>B+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bplus',-1)">-</button><input type="number" id="sc-Bplus" value="87"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bplus',1)">+</button></div></div>
+            <div><label>B</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-B',-1)">-</button><input type="number" id="sc-B" value="83"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-B',1)">+</button></div></div>
+            <div><label>B-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bminus',-1)">-</button><input type="number" id="sc-Bminus" value="80"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Bminus',1)">+</button></div></div>
+            <div><label>C+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cplus',-1)">-</button><input type="number" id="sc-Cplus" value="77"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cplus',1)">+</button></div></div>
+            <div><label>C</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-C',-1)">-</button><input type="number" id="sc-C" value="73"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-C',1)">+</button></div></div>
+            <div><label>C-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cminus',-1)">-</button><input type="number" id="sc-Cminus" value="70"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Cminus',1)">+</button></div></div>
+            <div><label>D+</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dplus',-1)">-</button><input type="number" id="sc-Dplus" value="67"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dplus',1)">+</button></div></div>
+            <div><label>D</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-D',-1)">-</button><input type="number" id="sc-D" value="63"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-D',1)">+</button></div></div>
+            <div><label>D-</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-Dminus',1)">+</button></div></div>
+            <div style="grid-column: span 3;"><label>F Minimum</label><div class="matrix-field-wrapper"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:100px;"><button class="matrix-inline-btn" onclick="modifyInputStepValue('sc-F',1)">+</button></div></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); margin-top:16px; padding: 10px 0;">Sync Grading Scale</button>
+          <button onclick="saveGradingScaleThreshToDB()" class="secondary-btn" style="width:100%; margin-top:20px; padding: 12px 0;">Save Grading Scale</button>
         </div>
       </div>
+
     </div>
   </div>
 
   <script>
+    // State Tracking Data Layers
     let currentAuthMode = 'register';
     let globalScale = {};
     let globalClasses = {};
@@ -400,23 +727,34 @@
     let activeFilterValue = "ALL";
     let activeCalcCategory = "";
 
-    function stepInputValue(id, amount) {
+    /**
+     * Programmatic adjustment control triggers for specialized dynamic layout step fields
+     */
+    function modifyInputStepValue(id, amount) {
       const input = document.getElementById(id);
       if(input) {
         let val = parseFloat(input.value) || 0;
         input.value = val + amount;
         input.dispatchEvent(new Event('input', { bubbles: true }));
-        readUiStateIntoMemory();
+        pullUiStateDataToMemory();
       }
     }
 
+    /**
+     * Handles view toggles for structural cards collapse system
+     */
     function toggleCardMinimize(id) {
       const card = document.getElementById(id);
       const icon = card.querySelector('.toggle-icon');
-      card.classList.toggle('minimized');
-      icon.innerText = card.classList.contains('minimized') ? '[+]' : '[–]';
+      if (card && icon) {
+        card.classList.toggle('minimized');
+        icon.innerText = card.classList.contains('minimized') ? 'Expand' : 'Collapse';
+      }
     }
 
+    /**
+     * Instantiates UI Dropdown controls tracking state bindings completely cleanly 
+     */
     function setupCustomDropdown(wrapperId, currentLabel, optionsArray, onSelectCallback) {
       const wrapper = document.getElementById(wrapperId);
       if(!wrapper) return;
@@ -442,41 +780,53 @@
       label.onclick = (e) => {
         e.stopPropagation();
         const state = wrapper.classList.contains('active');
-        closeAllDropdowns();
+        clearAllOpenDropdownWrappers();
         if(!state) wrapper.classList.add('active');
       };
     }
 
-    function closeAllDropdowns() {
+    function clearAllOpenDropdownWrappers() {
       document.querySelectorAll('.vibe-dropdown').forEach(d => d.classList.remove('active'));
     }
-    window.onclick = closeAllDropdowns;
+    window.onclick = clearAllOpenDropdownWrappers;
 
-    function showToast() {
+    /**
+     * Displays a temporary floating modal alert response notification confirmation banner
+     */
+    function renderStatusToastAlert() {
       const toast = document.getElementById('toast-notification');
-      toast.classList.remove('show-toast');
-      void toast.offsetWidth;
-      toast.classList.add('show-toast');
-    }
-
-    function toggleAuth() {
-      const title = document.getElementById('auth-title');
-      currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
-      title.innerText = (currentAuthMode === 'login') ? 'Log In' : 'Create Account';
-    }
-
-    async function checkSession() {
-      const res = await fetch('/api/me');
-      if(res.ok) {
-        const data = await res.json();
-        document.getElementById('current-user-tag').innerText = `SESSION // ${data.email.toUpperCase()}`;
-        document.getElementById('auth-view').classList.add('hidden');
-        document.getElementById('app-view').classList.remove('hidden');
-        await loadBackendData();
+      if (toast) {
+        toast.classList.remove('show-toast');
+        void toast.offsetWidth; // Force element structural re-flow paint rendering lifecycle layout update
+        toast.classList.add('show-toast');
       }
     }
 
-    async function executeAuth() {
+    function toggleAuthMode() {
+      const title = document.getElementById('auth-title');
+      currentAuthMode = (currentAuthMode === 'register') ? 'login' : 'register';
+      if (title) {
+        title.innerText = (currentAuthMode === 'login') ? 'Log In' : 'Sign Up';
+      }
+    }
+
+    /**
+     * Runs session lifecycle checks on boot loading verification points
+     */
+    async function executeVerificationSessionValidation() {
+      const res = await fetch('/api/me');
+      if(res.ok) {
+        const data = await res.json();
+        const tag = document.getElementById('current-user-tag');
+        if (tag) tag.innerText = `Signed in as: ${data.email}`;
+        
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('app-view').classList.remove('hidden');
+        await fetchUserDataPayloadFromDB();
+      }
+    }
+
+    async function runAuthSubmit() {
       document.getElementById('auth-error').classList.add('hidden');
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
@@ -489,26 +839,34 @@
       else document.getElementById('auth-error').classList.remove('hidden');
     }
 
-    async function logOutUser() { await fetch('/api/logout', { method: 'POST' }); window.location.reload(); }
+    async function logoutActiveSession() { 
+      await fetch('/api/logout', { method: 'POST' }); 
+      window.location.reload(); 
+    }
 
-    async function loadBackendData() {
+    /**
+     * Fetches primary configuration datasets from user payload entries
+     */
+    async function fetchUserDataPayloadFromDB() {
       const res = await fetch('/api/userdata');
       if(res.ok) {
         const payload = await res.json();
         globalScale = payload.gradingScale || { "Aplus": 97, "A": 93, "Aminus": 90, "Bplus": 87, "B": 83, "Bminus": 80, "Cplus": 77, "C": 73, "Cminus": 70, "Dplus": 67, "D": 63, "Dminus": 60, "F": 0 };
         globalClasses = payload.classes || {};
+        
         Object.keys(globalScale).forEach(key => {
-          const el = document.getElementById(`sc-${key}`); if(el) el.value = globalScale[key];
+          const el = document.getElementById(`sc-${key}`); 
+          if(el) el.value = globalScale[key];
         });
-        populateClassDropdown();
+        rebuildCourseProfileDropdownSelection();
       }
     }
 
-    function populateClassDropdown() {
+    function rebuildCourseProfileDropdownSelection() {
       const keys = Object.keys(globalClasses);
       if(keys.length === 0) {
-        globalClasses["General Course"] = { categories: [{name:"Exams", weight: 100}], assignments: [] };
-        keys.push("General Course");
+        globalClasses["Algebra 2"] = { categories: [{name:"Tests", weight: 60}, {name:"Homework", weight: 40}], assignments: [] };
+        keys.push("Algebra 2");
       }
       if (!activeClassName || !globalClasses[activeClassName]) activeClassName = keys[0];
       
@@ -516,16 +874,16 @@
       setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
         activeClassName = val;
         document.getElementById('rename-class-input').value = val;
-        populateCategoryFilters();
-        buildUiElementsFromMemory();
+        rebuildFilteringSelectors();
+        generateInteractiveWorkspaceElements();
       });
 
       document.getElementById('rename-class-input').value = activeClassName;
-      populateCategoryFilters();
-      buildUiElementsFromMemory();
+      rebuildFilteringSelectors();
+      generateInteractiveWorkspaceElements();
     }
 
-    function populateCategoryFilters() {
+    function rebuildFilteringSelectors() {
       const currentClass = globalClasses[activeClassName] || { categories: [] };
       
       const filterOpts = [{ label: "All Categories", value: "ALL" }].concat(currentClass.categories.map(c => ({ label: c.name, value: c.name })));
@@ -534,7 +892,7 @@
       
       setupCustomDropdown('log-filter-wrapper', currentFilterLabel, filterOpts, (val) => {
         activeFilterValue = val;
-        buildUiElementsFromMemory();
+        generateInteractiveWorkspaceElements();
       });
 
       const calcOpts = currentClass.categories.map(c => ({ label: c.name, value: c.name }));
@@ -546,7 +904,10 @@
       }
     }
 
-    function parseScoreString(str) {
+    /**
+     * Parses custom fraction grade evaluation score representations cleanly
+     */
+    function evalScoreExpression(str) {
       if (!str) return 100;
       const clean = str.toString().trim();
       if (clean.includes('/')) {
@@ -556,90 +917,118 @@
       return parseFloat(clean) || 0;
     }
 
-    function buildUiElementsFromMemory() {
+    /**
+     * Deep structural rendering engine transforming application data memory frames into DOM fragments
+     */
+    function generateInteractiveWorkspaceElements() {
       const targetClass = globalClasses[activeClassName] || { categories: [], assignments: [] };
       const catHook = document.getElementById('category-rows-hook');
+      if(!catHook) return;
       catHook.innerHTML = '';
       
       targetClass.categories.forEach((cat, index) => {
         const rowId = `cat-weight-step-${index}`;
-        catHook.innerHTML += `
-          <div class="row-item-3col cat-data-row">
-            <input type="text" value="${cat.name}" class="cat-name-input" data-index="${index}">
-            <div class="stepper-container">
-              <button class="stepper-btn" onclick="stepInputValue('${rowId}', -1)">−</button>
-              <input type="number" value="${cat.weight}" id="${rowId}" class="cat-weight-input" data-index="${index}">
-              <button class="stepper-btn" onclick="stepInputValue('${rowId}', 1)">+</button>
-            </div>
-            <button class="remove-btn" onclick="globalClasses[activeClassName].categories.splice(${index},1); populateCategoryFilters(); buildUiElementsFromMemory()">✕</button>
-          </div>`;
-      });
+        
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row-item cat-data-row';
+        rowDiv.innerHTML = `
+          <input type="text" value="${cat.name}" class="cat-name-input" data-index="${index}">
+          <div class="stepper-container">
+            <button class="stepper-btn" type="button" onclick="modifyInputStepValue('${rowId}', -1)">−</button>
+            <input type="number" value="${cat.weight}" id="${rowId}" class="cat-weight-input" data-index="${index}">
+            <button class="stepper-btn" type="button" onclick="modifyInputStepValue('${rowId}', 1)">+</button>
+          </div>
+          <button class="remove-btn" type="button">✕</button>
+        `;
+        
+        // Context boundary binding handlers for individual category deletions
+        rowDiv.querySelector('.remove-btn').onclick = () => {
+          globalClasses[activeClassName].categories.splice(index, 1);
+          rebuildFilteringSelectors();
+          generateInteractiveWorkspaceElements();
+        };
 
-      // Add fresh input hooks explicitly targeted to index boundaries to prevent cross-input bleeding
-      document.querySelectorAll('.cat-name-input').forEach(input => {
-        input.oninput = () => {
-          const idx = parseInt(input.getAttribute('data-index'));
-          globalClasses[activeClassName].categories[idx].name = input.value;
-          runCalculations();
+        // Strict element listener mapping explicitly targeted at boundaries avoiding tracking cross-bleeds
+        const nameInput = rowDiv.querySelector('.cat-name-input');
+        nameInput.oninput = () => {
+          const idx = parseInt(nameInput.getAttribute('data-index'));
+          globalClasses[activeClassName].categories[idx].name = nameInput.value;
+          executeUpdateCalculationsMetrics();
         };
-      });
-      document.querySelectorAll('.cat-weight-input').forEach(input => {
-        input.oninput = () => {
-          const idx = parseInt(input.getAttribute('data-index'));
-          globalClasses[activeClassName].categories[idx].weight = parseFloat(input.value) || 0;
-          runCalculations();
+
+        const weightInput = rowDiv.querySelector('.cat-weight-input');
+        weightInput.oninput = () => {
+          const idx = parseInt(weightInput.getAttribute('data-index'));
+          globalClasses[activeClassName].categories[idx].weight = parseFloat(weightInput.value) || 0;
+          executeUpdateCalculationsMetrics();
         };
+
+        catHook.appendChild(rowDiv);
       });
 
       const assignHook = document.getElementById('assignment-rows-hook');
+      if(!assignHook) return;
       assignHook.innerHTML = '';
       
       targetClass.assignments.forEach((asm, index) => {
         if (activeFilterValue !== "ALL" && asm.category !== activeFilterValue) return;
         
         const rowId = `asm-row-dropdown-${index}`;
-        assignHook.innerHTML += `
-          <div class="row-item-3col asm-data-row" data-index="${index}">
-            <input type="text" value="${asm.name}" class="asm-name-input" data-index="${index}">
-            <div style="display:flex; gap: 10px;">
-              <div class="vibe-dropdown" id="${rowId}">
-                <div class="vibe-dropdown-select">${asm.category}</div>
-                <div class="vibe-dropdown-options"></div>
-              </div>
-              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" data-index="${index}" style="text-align:center; width:90px;">
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row-item asm-data-row';
+        rowDiv.setAttribute('data-index', index);
+        rowDiv.innerHTML = `
+          <input type="text" value="${asm.name}" class="asm-name-input" data-index="${index}">
+          <div style="display:flex; gap: 12px; width:100%;">
+            <div class="vibe-dropdown" id="${rowId}">
+              <div class="vibe-dropdown-select">${asm.category}</div>
+              <div class="vibe-dropdown-options"></div>
             </div>
-            <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${index},1); buildUiElementsFromMemory()">✕</button>
-          </div>`;
+            <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" data-index="${index}" style="text-align:center; width:90px;">
+          </div>
+          <button class="remove-btn" type="button">✕</button>
+        `;
 
+        rowDiv.querySelector('.remove-btn').onclick = () => {
+          globalClasses[activeClassName].assignments.splice(index, 1);
+          generateInteractiveWorkspaceElements();
+        };
+
+        const nameInput = rowDiv.querySelector('.asm-name-input');
+        nameInput.oninput = () => {
+          const idx = parseInt(nameInput.getAttribute('data-index'));
+          globalClasses[activeClassName].assignments[idx].name = nameInput.value;
+        };
+
+        const scoreInput = rowDiv.querySelector('.asm-score-input');
+        scoreInput.oninput = () => {
+          const idx = parseInt(scoreInput.getAttribute('data-index'));
+          globalClasses[activeClassName].assignments[idx].scoreStr = scoreInput.value;
+          executeUpdateCalculationsMetrics();
+        };
+
+        assignHook.appendChild(rowDiv);
+
+        // Instantiate isolated options array components for dynamic dropdown items
         setTimeout(() => {
           const opts = targetClass.categories.map(c => ({ label: c.name, value: c.name }));
           setupCustomDropdown(rowId, asm.category, opts, (val) => {
             globalClasses[activeClassName].assignments[index].category = val;
-            runCalculations();
+            executeUpdateCalculationsMetrics();
           });
         }, 0);
       });
 
-      document.querySelectorAll('.asm-name-input').forEach(input => {
-        input.oninput = () => {
-          const idx = parseInt(input.getAttribute('data-index'));
-          globalClasses[activeClassName].assignments[idx].name = input.value;
-        };
-      });
-      document.querySelectorAll('.asm-score-input').forEach(input => {
-        input.oninput = () => {
-          const idx = parseInt(input.getAttribute('data-index'));
-          globalClasses[activeClassName].assignments[idx].scoreStr = input.value;
-          runCalculations();
-        };
-      });
-
-      runCalculations();
+      executeUpdateCalculationsMetrics();
     }
 
-    function readUiStateIntoMemory() {
+    /**
+     * Serializes values out of DOM containers cleanly saving current UI text states safely
+     */
+    function pullUiStateDataToMemory() {
       const currentClass = globalClasses[activeClassName];
       if(!currentClass) return;
+      
       document.querySelectorAll('.cat-data-row').forEach((row) => {
         const nameEl = row.querySelector('.cat-name-input');
         const weightEl = row.querySelector('.cat-weight-input');
@@ -651,6 +1040,7 @@
           }
         }
       });
+      
       document.querySelectorAll('.asm-data-row').forEach(row => {
         const nameEl = row.querySelector('.asm-name-input');
         const scoreEl = row.querySelector('.asm-score-input');
@@ -664,18 +1054,25 @@
       });
     }
 
-    function runCalculations() {
+    /**
+     * Executes mathematical calculation weights configurations against standard formulas
+     */
+    function executeUpdateCalculationsMetrics() {
       const currentClass = globalClasses[activeClassName];
       if (!currentClass) return;
-      let overallScore = 0, totalValidWeight = 0;
+      
+      let overallScore = 0;
+      let totalValidWeight = 0;
+      
       currentClass.categories.forEach(cat => {
         const matches = currentClass.assignments.filter(a => a.category === cat.name);
         if (matches.length > 0) {
-          let sum = matches.reduce((acc, m) => acc + parseScoreString(m.scoreStr), 0);
+          let sum = matches.reduce((acc, m) => acc + evalScoreExpression(m.scoreStr), 0);
           overallScore += (sum / matches.length) * (cat.weight / 100);
           totalValidWeight += cat.weight;
         }
       });
+      
       let finalNormalizedPct = totalValidWeight > 0 ? (overallScore / (totalValidWeight / 100)) : 0;
       document.getElementById('score-pct-badge').innerText = `${finalNormalizedPct.toFixed(1)}%`;
       
@@ -690,7 +1087,10 @@
       document.getElementById('score-letter-badge').innerText = letter;
     }
 
-    function calculateRequiredExamScore() {
+    /**
+     * Forecaster evaluation calculator metrics calculating hypothetical scores needed on final tests
+     */
+    function computeTargetRequiredExamScore() {
       const targetGrade = parseFloat(document.getElementById('target-class-grade').value) || 0;
       const targetCatName = activeCalcCategory;
       const currentClass = globalClasses[activeClassName];
@@ -699,25 +1099,32 @@
       let totalWeight = currentClass.categories.reduce((acc, c) => acc + c.weight, 0);
       if(totalWeight === 0) return;
 
-      let currentContribution = 0, targetCatWeight = 0;
+      let currentContribution = 0;
+      let targetCatWeight = 0;
+      
       currentClass.categories.forEach(cat => {
         if (cat.name === targetCatName) {
           targetCatWeight = cat.weight;
         } else {
           const matches = currentClass.assignments.filter(a => a.category === cat.name);
-          const catAvg = matches.length > 0 ? (matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0) / matches.length) : 100;
+          const catAvg = matches.length > 0 ? (matches.reduce((acc, curr) => acc + evalScoreExpression(curr.scoreStr), 0) / matches.length) : 100;
           currentContribution += catAvg * (cat.weight / 100);
         }
       });
 
       const matches = currentClass.assignments.filter(a => a.category === targetCatName);
       const requiredCatAvg = ((targetGrade * (totalWeight / 100)) - currentContribution) / (targetCatWeight / 100);
-      let requiredTestScore = matches.length === 0 ? requiredCatAvg : (requiredCatAvg * (matches.length + 1)) - matches.reduce((acc, curr) => acc + parseScoreString(curr.scoreStr), 0);
+      let requiredTestScore = matches.length === 0 ? requiredCatAvg : (requiredCatAvg * (matches.length + 1)) - matches.reduce((acc, curr) => acc + evalScoreExpression(curr.scoreStr), 0);
 
-      document.getElementById('target-result-badge').innerText = requiredTestScore <= 0 ? "Target benchmark reached." : `Required score on next evaluation: ${requiredTestScore.toFixed(1)}%`;
+      const displayEl = document.getElementById('target-result-badge');
+      if (displayEl) {
+        displayEl.innerText = requiredTestScore <= 0 ? 
+          "Goal already met! You can score a 0%." : 
+          `You need a ${requiredTestScore.toFixed(1)}% on your next assignment.`;
+      }
     }
 
-    async function syncDataWithDatabase() {
+    async function pushMemoryStateToDatabaseRemote() {
       await fetch('/api/userdata', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -725,22 +1132,75 @@
       });
     }
 
-    async function saveAllCurrentDataToServer() {
-      readUiStateIntoMemory();
-      await syncDataWithDatabase();
-      showToast();
-      populateCategoryFilters();
-      buildUiElementsFromMemory();
+    async function saveWorkspaceStateToDatabase() {
+      pullUiStateDataToMemory();
+      await pushMemoryStateToDatabaseRemote();
+      renderStatusToastAlert();
+      rebuildFilteringSelectors();
+      generateInteractiveWorkspaceElements();
     }
 
-    function appendBlankCategoryRow() { globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 }); populateCategoryFilters(); buildUiElementsFromMemory(); }
-    function appendBlankAssignmentRow() { const cats = globalClasses[activeClassName].categories; globalClasses[activeClassName].assignments.push({ name: "New Entry Assignment", category: cats.length > 0 ? cats[0].name : "Exams", scoreStr: "100" }); buildUiElementsFromMemory(); }
-    function createNewClassChannel() { const name = document.getElementById('new-class-input').value.trim(); if(name) { globalClasses[name] = { categories: [{ name: "Exams", weight: 100 }], assignments: [] }; activeClassName = name; populateClassDropdown(); } }
-    function renameCurrentSubject() { const n = document.getElementById('rename-class-input').value.trim(); if(n && !globalClasses[n]) { globalClasses[n] = globalClasses[activeClassName]; delete globalClasses[activeClassName]; activeClassName = n; populateClassDropdown(); } }
-    async function deleteCurrentClassChannel() { if(confirm("Purge course profile permanently?")) { delete globalClasses[activeClassName]; activeClassName = ""; await syncDataWithDatabase(); populateClassDropdown(); } }
-    async function saveScaleToServer() { Object.keys(globalScale).forEach(k => { const el = document.getElementById(`sc-${k}`); if(el) globalScale[k] = parseFloat(el.value); }); await fetch('/api/userdata', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gradingScale: globalScale }) }); runCalculations(); showToast(); }
+    function appendBlankCategoryRow() { 
+      globalClasses[activeClassName].categories.push({ name: "New Category", weight: 0 }); 
+      rebuildFilteringSelectors(); 
+      generateInteractiveWorkspaceElements(); 
+    }
+    
+    function appendBlankAssignmentRow() { 
+      const cats = globalClasses[activeClassName].categories; 
+      globalClasses[activeClassName].assignments.push({ 
+        name: "New Assignment", 
+        category: cats.length > 0 ? cats[0].name : "Tests", 
+        scoreStr: "100" 
+      }); 
+      generateInteractiveWorkspaceElements(); 
+    }
+    
+    function createNewClassChannel() { 
+      const name = document.getElementById('new-class-input').value.trim(); 
+      if(name) { 
+        globalClasses[name] = { categories: [{ name: "Tests", weight: 60 }, { name: "Homework", weight: 40 }], assignments: [] }; 
+        activeClassName = name; 
+        document.getElementById('new-class-input').value = '';
+        rebuildCourseProfileDropdownSelection(); 
+      } 
+    }
+    
+    function renameActiveSubject() { 
+      const n = document.getElementById('rename-class-input').value.trim(); 
+      if(n && !globalClasses[n]) { 
+        globalClasses[n] = globalClasses[activeClassName]; 
+        delete globalClasses[activeClassName]; 
+        activeClassName = n; 
+        rebuildCourseProfileDropdownSelection(); 
+      } 
+    }
+    
+    async function deleteActiveCourseChannel() { 
+      if(confirm("Are you sure you want to delete this class? All data will be lost.")) { 
+        delete globalClasses[activeClassName]; 
+        activeClassName = ""; 
+        await pushMemoryStateToDatabaseRemote(); 
+        rebuildCourseProfileDropdownSelection(); 
+      } 
+    }
+    
+    async function saveGradingScaleThreshToDB() { 
+      Object.keys(globalScale).forEach(k => { 
+        const el = document.getElementById(`sc-${k}`); 
+        if(el) globalScale[k] = parseFloat(el.value); 
+      }); 
+      await fetch('/api/userdata', { 
+        method: 'PUT', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ gradingScale: globalScale }) 
+      }); 
+      executeUpdateCalculationsMetrics(); 
+      renderStatusToastAlert(); 
+    }
 
-    window.onload = checkSession;
+    // Assign standard page boot validation loading hook execution entry logic
+    window.onload = executeVerificationSessionValidation;
   </script>
 </body>
 </html>
