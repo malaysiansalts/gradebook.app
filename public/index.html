@@ -327,6 +327,8 @@
     .vibe-dropdown.active .vibe-dropdown-select::after {
       transform: rotate(180deg);
     }
+    
+    /* FIX: Placed options menu over all elements & styled smooth custom scrollbars */
     .vibe-dropdown-options {
       position: absolute;
       top: calc(100% + 6px);
@@ -335,12 +337,27 @@
       background-color: #0f172a;
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: var(--radius-md);
-      z-index: 1000;
+      z-index: 10005;
       max-height: 250px;
       overflow-y: auto;
       display: none;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
+    
+    .vibe-dropdown-options::-webkit-scrollbar {
+      width: 6px;
+    }
+    .vibe-dropdown-options::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .vibe-dropdown-options::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+    }
+    .vibe-dropdown-options::-webkit-scrollbar-thumb:hover {
+      background: rgba(59, 130, 246, 0.4);
+    }
+
     .vibe-dropdown-option {
       padding: 12px 16px;
       color: var(--text-secondary);
@@ -952,7 +969,7 @@
       setupCustomDropdown('class-dropdown-wrapper', activeClassName, optList, (val) => {
         activeClassName = val;
         document.getElementById('rename-class-input').value = val;
-        activeFilterValue = "ALL"; // Reset filter on switch
+        activeFilterValue = "ALL"; 
         rebuildFilteringSelectors();
         generateInteractiveWorkspaceElements();
       });
@@ -1048,7 +1065,6 @@
       if(field === 'weight') value = parseFloat(value) || 0;
       globalClasses[activeClassName].categories[index][field] = value;
       
-      // If we updated a category name, cascade the change to all linked assignments
       if(field === 'name') {
         globalClasses[activeClassName].assignments.forEach(asm => {
           if(asm.category === oldName) asm.category = value;
@@ -1100,7 +1116,6 @@
       activeClassName = name;
       input.value = '';
       
-      // Persist to DB immediately so the list isn't lost on refresh
       pushDatabasePayloadToRailway();
     }
 
@@ -1216,7 +1231,6 @@
       calculateCurrentRunningGrades();
     }
 
-    // Consolidated Core API Persistence Functions
     async function pushDatabasePayloadToRailway() {
       const res = await fetch('/api/userdata', {
         method: 'PUT',
