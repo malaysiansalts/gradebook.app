@@ -96,6 +96,16 @@
     }
     input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
+    /* CRITICAL VIBE FIX: Wipe out browser-default white/square input spinners */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield; /* Firefox support */
+    }
+
     /* Custom Vibe-Matched Select Dropdown Component */
     .vibe-dropdown {
       position: relative;
