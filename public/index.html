@@ -441,7 +441,6 @@
       font-size: 14px;
     }
 
-    /* FIXED: Added position relative and z-index to fly above backdrop-filtered rows */
     .toolbar-card {
       position: relative;
       z-index: 20;
@@ -487,9 +486,10 @@
       transition: var(--transition-smooth);
     }
     
-    /* FIXED: Ensures active workspace cards drop background layers when dropdowns are open inside them */
-    .card:focus-within {
-      z-index: 15;
+    /* COMPLETE FIX: Forces cards or toolbars to overlay completely when dropdowns open inside them */
+    .toolbar-card:has(.vibe-dropdown.active),
+    .card:has(.vibe-dropdown.active) {
+      z-index: 50 !important;
     }
 
     .card-header {
