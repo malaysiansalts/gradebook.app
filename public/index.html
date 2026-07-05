@@ -3,39 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Premium Gradebook Portal - Elite Custom Dark Mode</title>
+  <title>Quantum Gradebook Portal - Next-Gen Console Interface</title>
   <style>
     :root {
-      --bg-space: #090d16;
-      --card-bg: #131b2e;
+      --bg-space: #05070c;
+      --card-bg: rgba(14, 22, 39, 0.65);
+      --card-border: rgba(59, 130, 246, 0.15);
+      --card-border-glow: rgba(59, 130, 246, 0.3);
       --brand-primary: #f8fafc;
       --brand-accent: #3b82f6;
+      --brand-neon: #60a5fa;
       --brand-accent-hover: #1d4ed8;
       --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border-soft: #1e293b;
-      --radius-lg: 12px;
-      --radius-md: 8px;
+      --text-muted: #64748b;
+      --input-bg: #090e1a;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --neon-green: #10b981;
+      --neon-red: #ef4444;
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: var(--font-stack);
       background-color: var(--bg-space);
+      background-image: 
+        radial-gradient(circle at 80% 10%, rgba(59, 130, 246, 0.08), transparent 45%),
+        radial-gradient(circle at 15% 80%, rgba(139, 92, 246, 0.05), transparent 40%);
+      background-attachment: fixed;
       color: var(--text-main);
       margin: 0;
       padding: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Core Animation Keyframes */
+    @keyframes panelEntrance {
+      from { opacity: 0; transform: translateY(16px) scale(0.99); filter: blur(4px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
 
-    @keyframes slideDownNotification {
-      0% { transform: translate(-50%, -100%); opacity: 0; }
-      15% { transform: translate(-50%, 20px); opacity: 1; }
-      85% { transform: translate(-50%, 20px); opacity: 1; }
-      100% { transform: translate(-50%, -100%); opacity: 0; }
+    @keyframes toastSlideIn {
+      0% { transform: translate(-50%, -40px); opacity: 0; filter: blur(4px); }
+      12% { transform: translate(-50%, 24px); opacity: 1; filter: blur(0); }
+      88% { transform: translate(-50%, 24px); opacity: 1; filter: blur(0); }
+      100% { transform: translate(-50%, -40px); opacity: 0; filter: blur(4px); }
+    }
+
+    @keyframes energyPulse {
+      0%, 100% { box-shadow: 0 0 15px -3px rgba(59, 130, 246, 0.2); }
+      50% { box-shadow: 0 0 25px 2px rgba(59, 130, 246, 0.4); }
     }
 
     #toast-notification {
@@ -43,213 +61,222 @@
       top: 0;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #ffffff;
-      padding: 10px 24px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 12px 28px;
       border-radius: var(--radius-md);
       font-weight: 600;
       font-size: 13px;
-      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
-      z-index: 9999;
+      letter-spacing: 0.5px;
+      z-index: 10000;
       opacity: 0;
       pointer-events: none;
+      box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.3);
     }
-    .show-toast { animation: slideDownNotification 3s ease-in-out; }
+    .show-toast { animation: toastSlideIn 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+    /* Auth Screens System */
     .auth-wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent);
+      padding: 20px;
+      box-sizing: border-box;
     }
     .auth-card {
       background: var(--card-bg);
-      border: 1px solid var(--border-soft);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-radius: var(--radius-lg);
-      padding: 30px;
-      max-width: 380px;
+      padding: 40px 32px;
+      max-width: 400px;
       width: 100%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-      animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+      animation: panelEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .auth-header { text-align: center; margin-bottom: 20px; }
-    .auth-header h2 { font-size: 24px; font-weight: 700; color: var(--brand-primary); margin: 0; }
-    .auth-header p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 13px; }
+    .auth-header h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--brand-primary); margin: 0; }
+    .auth-header p { margin: 6px 0 28px 0; color: var(--text-muted); font-size: 14px; }
 
-    .dashboard-wrapper { max-width: 1150px; margin: 24px auto; padding: 0 20px; animation: fadeInUp 0.4s ease-out; }
-    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    /* Global Typography & Structure */
+    .dashboard-wrapper { 
+      max-width: 1200px; 
+      margin: 40px auto; 
+      padding: 0 24px; 
+      animation: panelEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
     
-    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12px; color: var(--text-muted); }
+    label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
     
+    /* Input Elements System */
     input {
       width: 100%;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border-soft);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
       box-sizing: border-box;
-      background-color: #0f172a;
-      font-size: 13px;
+      background-color: var(--input-bg);
+      font-size: 14px;
       color: #ffffff;
-      transition: all 0.15s ease-in-out;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    input:focus { outline: none; border-color: var(--brand-accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+    input:focus { 
+      outline: none; 
+      border-color: var(--brand-neon); 
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+      background-color: #0d1527;
+    }
 
-    /* Hide default browser spinners completely */
     input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
 
-    /* Vibe-Matched Custom Stepper Layout for adjusting numbers */
+    /* Custom Stepper Mechanics */
     .stepper-container {
       display: flex;
       align-items: center;
-      background-color: #0f172a;
-      border: 1px solid var(--border-soft);
+      background-color: var(--input-bg);
+      border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       overflow: hidden;
+      transition: border-color 0.2s ease;
     }
-    .stepper-container input {
-      border: none !important;
-      margin-bottom: 0 !important;
-      text-align: center;
-      padding: 8px 4px;
-    }
+    .stepper-container:focus-within { border-color: var(--brand-neon); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15); }
+    .stepper-container input { border: none !important; margin-bottom: 0 !important; text-align: center; padding: 10px 4px; background: transparent; }
+    
     .stepper-btn {
-      background: #1e293b;
-      color: var(--text-muted);
+      background: rgba(30, 41, 59, 0.5);
+      color: var(--text-main);
       border: none;
-      padding: 0 10px;
-      height: 34px;
+      width: 36px;
+      height: 38px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .stepper-btn:hover { background: rgba(59, 130, 246, 0.2); color: var(--brand-neon); }
+
+    /* Premium Custom Dropdowns Layout */
+    .vibe-dropdown { position: relative; display: inline-block; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
+    .vibe-dropdown-select {
+      background-color: var(--input-bg);
+      color: #ffffff;
+      padding: 10px 34px 10px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
       cursor: pointer;
       font-size: 14px;
-      font-weight: bold;
-      user-select: none;
-      border-radius: 0;
-      transition: background 0.1s, color 0.1s;
-    }
-    .stepper-btn:hover {
-      background: #334155;
-      color: #ffffff;
-      transform: none;
-    }
-
-    /* Custom Vibe-Matched Select Dropdown Component */
-    .vibe-dropdown {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-    .vibe-dropdown-select {
-      background-color: #0f172a;
-      color: #ffffff;
-      padding: 8px 30px 8px 12px;
-      border: 1px solid var(--border-soft);
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-size: 13px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       user-select: none;
+      transition: all 0.25s ease;
     }
+    .vibe-dropdown-select:hover { border-color: rgba(96, 165, 250, 0.4); }
     .vibe-dropdown-select::after {
       content: "";
-      width: 0; height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 5px solid var(--text-muted);
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+      border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid var(--text-muted);
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%); transition: transform 0.2s ease;
     }
+    .vibe-dropdown.active .vibe-dropdown-select::after { transform: translateY(-50%) rotate(180deg); }
     .vibe-dropdown-options {
-      position: absolute;
-      top: 100%; left: 0; right: 0;
-      background-color: #0f172a;
-      border: 1px solid var(--border-soft);
+      position: absolute; top: 100%; left: 0; right: 0;
+      background-color: #0b111e;
+      border: 1px solid rgba(59, 130, 246, 0.25);
       border-radius: var(--radius-md);
-      margin-top: 4px;
-      padding: 4px 0;
-      z-index: 100;
-      display: none;
-      max-height: 200px;
-      overflow-y: auto;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+      margin-top: 6px; padding: 6px 0; z-index: 1000; display: none;
+      max-height: 220px; overflow-y: auto;
+      box-shadow: 0 16px 36px -6px rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
     }
-    .vibe-dropdown-option {
-      padding: 8px 12px;
-      color: #ffffff;
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.1s ease;
-    }
-    .vibe-dropdown-option:hover { background-color: var(--border-soft); }
+    .vibe-dropdown-option { padding: 10px 14px; color: var(--text-main); cursor: pointer; font-size: 14px; transition: all 0.15s ease; }
+    .vibe-dropdown-option:hover { background-color: rgba(59, 130, 246, 0.15); color: #ffffff; padding-left: 18px; }
     .vibe-dropdown.active .vibe-dropdown-options { display: block; }
 
+    /* Button Engineering */
     button {
-      background: var(--brand-accent);
+      background: linear-gradient(135deg, var(--brand-accent) 0%, #1d4ed8 100%);
       color: #ffffff;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: var(--radius-md);
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      transition: all 0.15s ease;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    button:hover { background: var(--brand-accent-hover); transform: translateY(-1px); }
-    .secondary-btn { background: none; color: var(--text-muted); border: 1px solid var(--border-soft); width: 100%; margin-top: 8px; }
-    .secondary-btn:hover { background: #1e293b; color: #ffffff; }
-
-    .grid-container { display: grid; grid-template-columns: 1.9fr 1.1fr; gap: 20px; }
-    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
-
-    .card { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 20px; }
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
+    button:hover { 
+      transform: translateY(-1.5px); 
+      box-shadow: 0 8px 20px -2px rgba(59, 130, 246, 0.45), 0 0 12px 1px rgba(96, 165, 250, 0.2);
     }
-    .card-header h3 { font-size: 15px; font-weight: 700; color: var(--brand-primary); margin: 0; }
-    .toggle-icon { color: var(--text-muted); font-size: 14px; font-weight: bold; font-family: monospace; }
+    button:active { transform: translateY(0); }
     
-    .card-content { margin-top: 12px; transition: all 0.2s ease; }
+    .secondary-btn { background: rgba(30, 41, 59, 0.4); color: var(--text-main); border: 1px solid var(--card-border); width: 100%; margin-top: 10px; box-shadow: none; }
+    .secondary-btn:hover { background: rgba(30, 41, 59, 0.8); border-color: rgba(255,255,255,0.15); box-shadow: none; color: #ffffff; }
+
+    /* Content Layout Containers */
+    .grid-container { display: grid; grid-template-columns: 1.90fr 1.10fr; gap: 28px; }
+    @media (max-width: 950px) { .grid-container { grid-template-columns: 1fr; gap: 20px; } }
+
+    .card { 
+      background: var(--card-bg); 
+      border: 1px solid var(--card-border); 
+      border-radius: var(--radius-lg); 
+      padding: 24px; 
+      margin-bottom: 24px; 
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover { border-color: rgba(59, 130, 246, 0.25); }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+    .card-header h3 { font-size: 16px; font-weight: 700; color: var(--brand-primary); margin: 0; letter-spacing: -0.2px; }
+    .toggle-icon { color: var(--text-muted); font-size: 13px; font-family: monospace; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+    
+    .card-content { margin-top: 20px; }
     .card.minimized .card-content { display: none !important; }
+    .card.minimized { padding-bottom: 24px; }
 
-    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 30px; gap: 10px; align-items: center; margin-bottom: 6px; }
+    /* Data Layout Dynamic Components */
+    .row-item-3col { display: grid; grid-template-columns: 3.5fr 2.5fr 36px; gap: 14px; align-items: center; margin-bottom: 10px; animation: panelEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .row-item-3col input, .row-item-3col .vibe-dropdown, .row-item-3col .stepper-container { margin-bottom: 0; }
     
-    .remove-btn { background: none; color: var(--text-muted); font-size: 16px; border: none; cursor: pointer; text-align: center; }
-    .remove-btn:hover { color: #ef4444; }
+    .remove-btn { background: none; color: var(--text-muted); font-size: 14px; border: none; cursor: pointer; text-align: center; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease; box-shadow: none; }
+    .remove-btn:hover { color: var(--neon-red); background: rgba(239, 68, 68, 0.1); transform: rotate(90deg); box-shadow: none; }
     .hidden { display: none !important; }
     
-    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .scale-matrix div { background: #0f172a; padding: 6px; border: 1px solid var(--border-soft); border-radius: var(--radius-md); text-align: center; }
-    .scale-matrix label { margin-bottom: 2px; font-size: 11px; }
+    /* Matrix Metric Calibration Modules */
+    .scale-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .scale-matrix div { background: rgba(9, 14, 26, 0.6); padding: 10px 6px; border: 1px solid var(--card-border); border-radius: var(--radius-md); text-align: center; transition: all 0.2s ease; }
+    .scale-matrix div:hover { border-color: rgba(59, 130, 246, 0.3); background: rgba(9, 14, 26, 0.9); }
+    .scale-matrix label { margin-bottom: 4px; font-size: 11px; font-weight: 700; color: var(--brand-neon); }
     
-    /* Clean micro layout fields for matrix scale floors */
-    .scale-matrix-field {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .scale-matrix-field { display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+    .scale-matrix input { margin-bottom: 0; padding: 2px; text-align: center; background: transparent; border: none; font-size: 16px; font-weight: 800; width: 42px; color: #ffffff; }
+    .scale-matrix input:focus { box-shadow: none; background: transparent; }
+    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; font-weight: bold; padding: 0 6px; user-select: none; box-shadow: none; transition: color 0.1s; }
+    .matrix-step-btn:hover { color: #ffffff; transform: none; box-shadow: none; }
+
+    /* Yield Metric Core Matrix Display Module */
+    .yield-display-panel {
+      text-align: center; background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.18), transparent 70%), #090e1a; 
+      border: 1px solid rgba(59, 130, 246, 0.35); padding: 28px 20px; animation: energyPulse 6s infinite ease-in-out;
     }
-    .scale-matrix input { margin-bottom: 0; padding: 4px; text-align: center; background: transparent; border: none; font-size: 14px; font-weight: 700; width: 45px; }
-    .matrix-step-btn { background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; font-weight: bold; padding: 0 4px; }
-    .matrix-step-btn:hover { color: #ffffff; }
   </style>
 </head>
 <body>
@@ -262,45 +289,45 @@
         <h2 id="auth-title">Create Account</h2>
         <p>Access Local Grade Analytics Terminal</p>
       </div>
-      <div id="auth-error" style="color: #ef4444; font-weight: 600; font-size: 12px; text-align: center; margin-bottom: 12px;" class="hidden">Authentication processing error. Check parameters.</div>
+      <div id="auth-error" style="color: var(--neon-red); font-weight: 600; font-size: 13px; text-align: center; margin-bottom: 16px; letter-spacing: 0.3px;" class="hidden">Authentication processing error. Check parameters.</div>
       <form onsubmit="event.preventDefault(); executeAuth();">
         <label>Email Address</label>
         <input type="email" id="auth-email" placeholder="you@academy.com" required>
         <label>Password</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" required>
-        <button type="submit" style="width:100%; margin-top: 4px; padding: 10px;">Authenticate</button>
+        <button type="submit" style="width:100%; margin-top: 8px; padding: 12px; font-size: 14px;">Authenticate Entry</button>
       </form>
-      <button class="secondary-btn" onclick="toggleAuth()">Switch Login / Sign Up</button>
+      <button class="secondary-btn" onclick="toggleAuth()" style="padding: 10px;">Switch Login / Sign Up</button>
     </div>
   </div>
 
   <div id="app-view" class="dashboard-wrapper hidden">
     <div class="top-nav">
       <div>
-        <h1 style="margin:0; font-size: 24px;">Workspace Matrix</h1>
-        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; margin:2px 0 0 0;"></p>
+        <h1 style="margin:0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Workspace Matrix</h1>
+        <p id="current-user-tag" style="color: var(--text-muted); font-size:12px; font-weight: 500; margin:4px 0 0 0; letter-spacing: 0.3px;"></p>
       </div>
-      <button onclick="logOutUser()" style="background: #1e293b; border: 1px solid var(--border-soft); padding: 6px 14px;">Disconnect Session</button>
+      <button onclick="logOutUser()" style="background: rgba(30, 41, 59, 0.4); border: 1px solid var(--card-border); padding: 8px 16px; box-shadow: none;">Disconnect Session</button>
     </div>
 
-    <div class="card" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; padding: 12px;">
-      <div style="flex: 1.2; min-width: 150px;">
+    <div class="card" style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; padding: 16px;">
+      <div style="flex: 1.2; min-width: 180px;">
         <label>Active Course</label>
         <div class="vibe-dropdown" id="class-dropdown-wrapper">
           <div class="vibe-dropdown-select" id="class-dropdown-label">Select Course</div>
           <div class="vibe-dropdown-options" id="class-dropdown-options"></div>
         </div>
       </div>
-      <div style="flex: 1; min-width: 150px;">
+      <div style="flex: 1; min-width: 180px;">
         <label>Rename Course</label>
-        <div style="display: flex; gap: 6px;">
+        <div style="display: flex; gap: 8px;">
           <input type="text" id="rename-class-input" style="margin-bottom:0;">
-          <button onclick="renameCurrentSubject()" style="background: #334155;">Rename</button>
+          <button onclick="renameCurrentSubject()" style="background: #1e293b; box-shadow: none;">Rename</button>
         </div>
       </div>
-      <div style="display: flex; gap: 6px; align-items: flex-end;">
-        <button onclick="deleteCurrentClassChannel()" style="background: #ef4444; white-space: nowrap;">Delete Class</button>
-        <input type="text" id="new-class-input" placeholder="Code (e.g., PHY2)" style="width:120px; margin-bottom:0;">
+      <div style="display: flex; gap: 8px; align-items: flex-end;">
+        <button onclick="deleteCurrentClassChannel()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; box-shadow: none; white-space: nowrap;">Delete Class</button>
+        <input type="text" id="new-class-input" placeholder="Code (e.g., PHY2)" style="width:130px; margin-bottom:0;">
         <button onclick="createNewClassChannel()">+ Add Class</button>
       </div>
     </div>
@@ -314,15 +341,15 @@
           </div>
           <div class="card-content">
             <div id="category-rows-hook"></div>
-            <button onclick="appendBlankCategoryRow()" style="background:#1e293b; margin-top:8px; padding: 6px 12px; font-size: 12px;">+ Add Category</button>
+            <button onclick="appendBlankCategoryRow()" style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); margin-top: 10px; padding: 8px 16px; font-size: 12px; box-shadow: none;">+ Add Category</button>
           </div>
         </div>
 
         <div class="card" id="card-logs">
           <div class="card-header" onclick="toggleCardMinimize('card-logs')">
-            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width: 100%; padding-right: 20px;">
               <h3>2. Log Entries</h3>
-              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:160px; margin-bottom:0;" onclick="event.stopPropagation()">
+              <div class="vibe-dropdown" id="log-filter-wrapper" style="width:180px; margin-bottom:0;" onclick="event.stopPropagation()">
                 <div class="vibe-dropdown-select" id="log-filter-label">Show All</div>
                 <div class="vibe-dropdown-options" id="log-filter-options"></div>
               </div>
@@ -331,9 +358,9 @@
           </div>
           <div class="card-content">
             <div id="assignment-rows-hook"></div>
-            <div style="display:flex; gap:10px; margin-top:12px;">
-              <button onclick="appendBlankAssignmentRow()" style="background:#1e293b; padding: 6px 12px; font-size: 12px;">+ Add Assignment</button>
-              <button onclick="saveAllCurrentDataToServer()" style="padding: 6px 14px; font-size: 12px;">Save Configuration Matrix</button>
+            <div style="display:flex; gap:12px; margin-top:16px;">
+              <button onclick="appendBlankAssignmentRow()" style="background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); padding: 8px 16px; font-size: 12px; box-shadow: none;">+ Add Assignment</button>
+              <button onclick="saveAllCurrentDataToServer()" style="padding: 8px 18px; font-size: 12px;">Save Configuration Matrix</button>
             </div>
           </div>
         </div>
@@ -344,7 +371,7 @@
             <span class="toggle-icon">[–]</span>
           </div>
           <div class="card-content">
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
               <div>
                 <label>Target Class Grade %</label>
                 <div class="stepper-container">
@@ -361,23 +388,23 @@
                 </div>
               </div>
               <div style="display:flex; align-items:flex-end;">
-                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 8px 0;">Calculate Grade</button>
+                <button onclick="calculateRequiredExamScore()" style="width:100%; padding: 10px 0;">Calculate Grade</button>
               </div>
             </div>
-            <p id="target-result-badge" style="color:var(--brand-accent); font-weight:700; text-align:center; margin:10px 0 0 0; font-size: 13px;"></p>
+            <p id="target-result-badge" style="color: var(--brand-neon); font-weight:700; text-align:center; margin-top:16px; font-size: 13px; letter-spacing: 0.2px;"></p>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="card" style="text-align:center; background: #0f172a; border-color: var(--brand-accent); padding: 16px;">
-          <span style="color: var(--text-muted); font-size:12px; font-weight: 600; text-transform: uppercase;">Weighted Matrix Yield</span>
-          <h1 id="score-pct-badge" style="font-size:48px; margin:6px 0; color:#ffffff; font-weight: 800;">0.0%</h1>
-          <div id="score-letter-badge" style="font-weight:800; font-size:20px; color: var(--brand-accent);">F</div>
+        <div class="card yield-display-panel">
+          <span style="color: var(--text-muted); font-size:11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">Weighted Matrix Yield</span>
+          <h1 id="score-pct-badge" style="font-size: 54px; margin: 8px 0; color:#ffffff; font-weight: 900; letter-spacing: -1px;">0.0%</h1>
+          <div id="score-letter-badge" style="font-weight:900; font-size: 22px; color: var(--brand-neon); letter-spacing: 1px;">F</div>
         </div>
 
         <div class="card">
-          <h3>Grading Threshold Mapping Floors</h3>
+          <h3 style="margin-bottom: 16px;">Grading Threshold Mapping Floors</h3>
           <div class="scale-matrix">
             <div><label>A+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',-1)">-</button><input type="number" id="sc-Aplus" value="97"><button class="matrix-step-btn" onclick="stepInputValue('sc-Aplus',1)">+</button></div></div>
             <div><label>A</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',-1)">-</button><input type="number" id="sc-A" value="93"><button class="matrix-step-btn" onclick="stepInputValue('sc-A',1)">+</button></div></div>
@@ -391,9 +418,9 @@
             <div><label>D+</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',-1)">-</button><input type="number" id="sc-Dplus" value="67"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dplus',1)">+</button></div></div>
             <div><label>D</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',-1)">-</button><input type="number" id="sc-D" value="63"><button class="matrix-step-btn" onclick="stepInputValue('sc-D',1)">+</button></div></div>
             <div><label>D-</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',-1)">-</button><input type="number" id="sc-Dminus" value="60"><button class="matrix-step-btn" onclick="stepInputValue('sc-Dminus',1)">+</button></div></div>
-            <div style="grid-column: span 3;"><label>F Floor</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:100px;"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',1)">+</button></div></div>
+            <div style="grid-column: span 3;"><label>F Floor</label><div class="scale-matrix-field"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',-1)">-</button><input type="number" id="sc-F" value="0" style="width:120px;"><button class="matrix-step-btn" onclick="stepInputValue('sc-F',1)">+</button></div></div>
           </div>
-          <button onclick="saveScaleToServer()" style="width:100%; background:#1e293b; margin-top:12px; padding: 8px 0;">Sync Calibration Scale</button>
+          <button onclick="saveScaleToServer()" style="width:100%; background: rgba(30, 41, 59, 0.5); border: 1px solid var(--card-border); margin-top:16px; padding: 10px 0; box-shadow: none;">Sync Calibration Scale</button>
         </div>
       </div>
     </div>
@@ -407,13 +434,11 @@
     let activeFilterValue = "ALL";
     let activeCalcCategory = "";
 
-    // Global utility to programmatically trigger step value updates securely on clean dark components
     function stepInputValue(id, amount) {
       const input = document.getElementById(id);
       if(input) {
         let val = parseFloat(input.value) || 0;
         input.value = val + amount;
-        // Broadcast input update events manually to force execution calculations recalculating dynamically
         input.dispatchEvent(new Event('input', { bubbles: true }));
         readUiStateIntoMemory();
       }
@@ -477,7 +502,7 @@
       const res = await fetch('/api/me');
       if(res.ok) {
         const data = await res.json();
-        document.getElementById('current-user-tag').innerText = `Active Profile Session: ${data.email}`;
+        document.getElementById('current-user-tag').innerText = `CON_LINK // ${data.email.toUpperCase()}`;
         document.getElementById('auth-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
         await loadBackendData();
@@ -593,12 +618,12 @@
         assignHook.innerHTML += `
           <div class="row-item-3col asm-data-row" data-index="${index}">
             <input type="text" value="${asm.name}" class="asm-name-input" oninput="readUiStateIntoMemory()">
-            <div style="display:flex; gap: 6px;">
+            <div style="display:flex; gap: 10px;">
               <div class="vibe-dropdown" id="${rowId}">
                 <div class="vibe-dropdown-select">${asm.category}</div>
                 <div class="vibe-dropdown-options"></div>
               </div>
-              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()">
+              <input type="text" value="${asm.scoreStr !== undefined ? asm.scoreStr : '100'}" class="asm-score-input" oninput="readUiStateIntoMemory()" style="text-align:center; width:90px;">
             </div>
             <button class="remove-btn" onclick="globalClasses[activeClassName].assignments.splice(${index},1); buildUiElementsFromMemory()">✕</button>
           </div>`;
